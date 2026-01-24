@@ -6,6 +6,7 @@
     "agent-rules/rules/quality-testing-and-errors.md",
     "agent-rules/rules/command-execution.md",
     "agent-rules/rules/agent-rules-composition.md",
+    "agent-rules/rules/markdown-linking.md",
     "agent-rules/rules/readme-standards.md",
     "agent-rules-local/qti3-results-reporting.md"
   ]
