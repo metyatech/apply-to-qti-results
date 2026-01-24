@@ -98,114 +98,125 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
       failResultItem(resultIdentifier, "itemResult not found");
     }
 
-    const itemSource = itemSourceById.get(identifier);
-    if (!itemSource) {
-      failItem(identifier, "scoring source not found");
+    const hasCriteria = item.criteria !== undefined;
+    const hasComment = item.comment !== undefined;
+
+    if (!hasCriteria && !hasComment) {
+      failItem(identifier, "criteria or comment required");
     }
 
-    let rubric = rubricCache.get(identifier);
-    if (!rubric) {
-      rubric = extractRubric(itemSource, identifier);
-      rubricCache.set(identifier, rubric);
-    }
-
-    if (!Array.isArray(item.criteria)) {
-      failItem(identifier, "criteria must be an array");
-    }
-
-    if (item.comment !== undefined) {
+    if (hasComment) {
       if (typeof item.comment !== "string" || item.comment.length === 0) {
         failItem(identifier, "comment must be a non-empty string");
       }
     }
 
-    if (item.criteria.length !== rubric.criteria.length) {
-      failItem(
-        identifier,
-        `criteria length (${item.criteria.length}) does not match rubric criteria count (${rubric.criteria.length})`,
-      );
-    }
-
     const outcomes = ensureArray(itemResult.outcomeVariable) as XmlObject[];
     itemResult.outcomeVariable = outcomes;
-    const existingRubricMet = preserveMet ? extractExistingRubricMet(outcomes) : new Map<number, boolean>();
 
-    let itemScoreScaled = 0;
-    for (let index = 0; index < item.criteria.length; index += 1) {
-      const criterion = item.criteria[index];
-      const rubricCriterion = rubric.criteria[index];
-
-      if (!criterion || typeof criterion !== "object") {
-        failItem(identifier, `criterion must be an object at index ${index + 1}`);
+    if (hasCriteria) {
+      const itemSource = itemSourceById.get(identifier);
+      if (!itemSource) {
+        failItem(identifier, "scoring source not found");
       }
 
-      if (typeof (criterion as XmlObject).met !== "boolean") {
-        failItem(identifier, `criterion met must be boolean at index ${index + 1}`);
+      let rubric = rubricCache.get(identifier);
+      if (!rubric) {
+        rubric = extractRubric(itemSource, identifier);
+        rubricCache.set(identifier, rubric);
       }
 
-      if ("criterionText" in (criterion as XmlObject) && (criterion as XmlObject).criterionText !== undefined) {
-        if (typeof (criterion as XmlObject).criterionText !== "string") {
-          failItem(identifier, `criterionText must be string at index ${index + 1}`);
+      if (!Array.isArray(item.criteria)) {
+        failItem(identifier, "criteria must be an array");
+      }
+
+      if (item.criteria.length !== rubric.criteria.length) {
+        failItem(
+          identifier,
+          `criteria length (${item.criteria.length}) does not match rubric criteria count (${rubric.criteria.length})`,
+        );
+      }
+
+      const existingRubricMet = preserveMet ? extractExistingRubricMet(outcomes) : new Map<number, boolean>();
+
+      let itemScoreScaled = 0;
+      for (let index = 0; index < item.criteria.length; index += 1) {
+        const criterion = item.criteria[index];
+        const rubricCriterion = rubric.criteria[index];
+
+        if (!criterion || typeof criterion !== "object") {
+          failItem(identifier, `criterion must be an object at index ${index + 1}`);
         }
-        if ((criterion as XmlObject).criterionText !== rubricCriterion.text) {
-          failItem(identifier, `criterionText does not match rubric criterion at index ${index + 1}`);
+
+        if (typeof (criterion as XmlObject).met !== "boolean") {
+          failItem(identifier, `criterion met must be boolean at index ${index + 1}`);
         }
-      }
 
-      const requestedMet = Boolean((criterion as XmlObject).met);
-      const existingMet = existingRubricMet.get(index + 1);
-      const preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
-      const finalMet = preserveDowngrade ? true : requestedMet;
+        if ("criterionText" in (criterion as XmlObject) && (criterion as XmlObject).criterionText !== undefined) {
+          if (typeof (criterion as XmlObject).criterionText !== "string") {
+            failItem(identifier, `criterionText must be string at index ${index + 1}`);
+          }
+          if ((criterion as XmlObject).criterionText !== rubricCriterion.text) {
+            failItem(identifier, `criterionText does not match rubric criterion at index ${index + 1}`);
+          }
+        }
 
-      if (preserveDowngrade) {
-        onPreserveMetDowngrade?.({
-          itemIdentifier: identifier,
-          rubricIndex: index + 1,
-        });
-      }
+        const requestedMet = Boolean((criterion as XmlObject).met);
+        const existingMet = existingRubricMet.get(index + 1);
+        const preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
+        const finalMet = preserveDowngrade ? true : requestedMet;
 
-      if (finalMet) {
-        itemScoreScaled += toScaledInt(rubricCriterion.points, rubric.scaleDigits);
+        if (preserveDowngrade) {
+          onPreserveMetDowngrade?.({
+            itemIdentifier: identifier,
+            rubricIndex: index + 1,
+          });
+        }
+
+        if (finalMet) {
+          itemScoreScaled += toScaledInt(rubricCriterion.points, rubric.scaleDigits);
+        }
+
+        upsertOutcomeVariable(
+          outcomes,
+          `RUBRIC_${index + 1}_MET`,
+          "boolean",
+          finalMet ? "true" : "false",
+        );
       }
 
       upsertOutcomeVariable(
         outcomes,
-        `RUBRIC_${index + 1}_MET`,
-        "boolean",
-        finalMet ? "true" : "false",
+        "SCORE",
+        "float",
+        formatScaled(itemScoreScaled, rubric.scaleDigits),
       );
+      processedScores.push({ scaled: itemScoreScaled, scale: rubric.scaleDigits });
     }
 
-    if (item.comment !== undefined) {
-      upsertOutcomeVariable(outcomes, "COMMENT", "string", item.comment);
+    if (hasComment) {
+      upsertOutcomeVariable(outcomes, "COMMENT", "string", item.comment as string);
+    }
+  }
+
+  if (processedScores.length > 0) {
+    const testOutcomes = ensureArray(testResult.outcomeVariable) as XmlObject[];
+    testResult.outcomeVariable = testOutcomes;
+
+    const testScale = Math.max(...processedScores.map((score) => score.scale));
+    let testScoreScaled = 0;
+    for (const score of processedScores) {
+      const multiplier = 10 ** (testScale - score.scale);
+      testScoreScaled += score.scaled * multiplier;
     }
 
     upsertOutcomeVariable(
-      outcomes,
+      testOutcomes,
       "SCORE",
       "float",
-      formatScaled(itemScoreScaled, rubric.scaleDigits),
+      formatScaled(testScoreScaled, testScale),
     );
-    processedScores.push({ scaled: itemScoreScaled, scale: rubric.scaleDigits });
   }
-
-  const testOutcomes = ensureArray(testResult.outcomeVariable) as XmlObject[];
-  testResult.outcomeVariable = testOutcomes;
-
-  const testScale =
-    processedScores.length === 0 ? 0 : Math.max(...processedScores.map((score) => score.scale));
-  let testScoreScaled = 0;
-  for (const score of processedScores) {
-    const multiplier = 10 ** (testScale - score.scale);
-    testScoreScaled += score.scaled * multiplier;
-  }
-
-  upsertOutcomeVariable(
-    testOutcomes,
-    "SCORE",
-    "float",
-    formatScaled(testScoreScaled, testScale),
-  );
 
   return buildXml(resultsDoc);
 }

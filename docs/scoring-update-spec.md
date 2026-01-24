@@ -99,8 +99,10 @@ points.
 ### Item structure
 Each item entry contains:
 - `identifier`: item identifier (must match `itemResult/@identifier`).
-- `criteria`: an array aligned to the rubric order.
+- `criteria` (optional array): aligned to the rubric order.
 - `comment` (optional string): a per-item comment to store in the results output.
+
+At least one of `criteria` or `comment` must be provided.
 
 Each criterion entry contains:
 - `met` (boolean): whether the criterion is satisfied.
@@ -129,6 +131,10 @@ If `comment` is provided in the scoring input, the tool adds or updates an
 - `identifier`: `COMMENT`
 - `baseType`: `string`
 - `value`: the comment text
+
+## Comment-only updates
+If an item provides `comment` without `criteria`, the tool only updates the
+comment output and does not modify rubric outcomes or scores.
 
 ## Score calculation
 

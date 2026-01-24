@@ -48,8 +48,9 @@ You can pass multiple `--item` flags.
 JSON input that matches [`docs/scoring-update-input.schema.json`](docs/scoring-update-input.schema.json).
 Example fixture: [`test/test-cases/basic/scoring.json`](test/test-cases/basic/scoring.json).
 
-Scoring item entries can optionally include `comment` to store a per-item
-comment in the results output.
+Scoring item entries can include `comment` to store a per-item comment in the
+results output. If `comment` is provided without `criteria`, only the comment
+is updated.
 
 ### `--preserve-met` (optional)
 When enabled, existing `RUBRIC_<n>_MET=true` values in the results XML are never

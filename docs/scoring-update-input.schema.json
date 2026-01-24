@@ -11,7 +11,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["identifier", "criteria"],
+        "required": ["identifier"],
         "properties": {
           "identifier": {
             "type": "string",
@@ -39,7 +39,11 @@
             "type": "string",
             "minLength": 1
           }
-        }
+        },
+        "anyOf": [
+          { "required": ["criteria"] },
+          { "required": ["comment"] }
+        ]
       }
     }
   }
