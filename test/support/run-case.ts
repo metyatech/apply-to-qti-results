@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
 
-import { applyScoringUpdate, type ScoringError } from "./scoring-update.ts";
+import { runImplementation } from "./implementation.ts";
+import type { ScoringError } from "./types.ts";
 import { normalizeXml } from "./xml.ts";
 
 const RESULTS_INPUT = "results.input.xml";
@@ -40,18 +41,19 @@ export function runCase(caseName: string, caseDir: string): void {
     throw new Error("Missing item source XML files");
   }
 
-  const resultsXml = fs.readFileSync(resultsInputPath, "utf8");
-  const scoringJson = fs.readFileSync(scoringPath, "utf8");
-  const itemXmlList = itemSources.map((filePath) => fs.readFileSync(filePath, "utf8"));
-
   let actualResult: string | ScoringError;
 
   try {
-    actualResult = applyScoringUpdate({
-      resultsXml,
-      itemXmlList,
-      scoringJson,
+    const result = runImplementation({
+      resultsPath: resultsInputPath,
+      itemPaths: itemSources,
+      scoringPath,
     });
+    if (result.ok) {
+      actualResult = result.outputXml;
+    } else {
+      actualResult = result.error;
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Unhandled error: ${message}`);
