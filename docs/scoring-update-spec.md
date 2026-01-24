@@ -39,9 +39,41 @@ standard built-in identifier in Results Reporting, so the tool uses its own
 identifier pattern for those outcomes.
 
 ## Matching rules
-- Each `itemResult/@identifier` must match the corresponding
+- By default, each `itemResult/@identifier` must match the corresponding
   `qti-assessment-item/@identifier` exactly (case-sensitive).
+- When a mapping definition is provided (see below), `itemResult` identifiers
+  may differ and are matched through the mapping file instead.
 - If a match is not found, the update fails for that item with a clear error.
+
+## Linking results to items
+When results use `Q{n}` style identifiers and item sources use file-based
+identifiers, provide a mapping definition that declares how each results
+identifier maps to an item identifier.
+
+### Mapping definition (optional input)
+Provide a mapping CSV file (UTF-8, no BOM) with a single header row:
+
+```
+resultItemIdentifier,itemIdentifier
+```
+
+Each subsequent row defines one mapping entry with:
+
+- `resultItemIdentifier` (string): the `itemResult/@identifier` value (for example `Q1`).
+- `itemIdentifier` (string): the assessment item `identifier`.
+
+Constraints:
+
+- One-to-one mapping (no duplicates on either side).
+- All `itemResult/@identifier` values in the results document must be mapped.
+- All mapped `itemIdentifier` values must exist in the item source set.
+
+Notes:
+
+- Row order does not matter.
+- Both values are treated as case-sensitive identifiers.
+- When the mapping file is provided, the scoring JSON `items[].identifier` must
+  refer to the item identifiers (not the result identifiers).
 
 ## Scoring rubric extraction
 The scoring rubric is read from `qti-rubric-block` with `view="scorer"` inside

@@ -54,6 +54,19 @@ downgraded to `false`. The item-level and test-level `SCORE` are calculated
 using the preserved rubric outcomes.
 If a downgrade is prevented, the CLI writes a warning to stderr.
 
+### `--mapping` (optional)
+CSV file that maps results identifiers to item identifiers. Use this when
+`itemResult/@identifier` values (for example `Q1`) do not match item source
+identifiers. Format:
+
+```
+resultItemIdentifier,itemIdentifier
+Q1,item-001
+Q2,item-002
+```
+
+When `--mapping` is provided, `scoring.json` must use item identifiers.
+
 The CLI must accept the following arguments:
 
 - `--results <path>`: results input XML.

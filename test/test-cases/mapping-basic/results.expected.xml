@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentResult xmlns="http://www.imsglobal.org/xsd/imsqti_result_v3p0">
+  <context sourcedId="candidate-9"/>
+  <testResult identifier="test-9" datestamp="2026-01-24T01:20:00Z">
+    <outcomeVariable identifier="SCORE" baseType="float">
+      <value>5</value>
+    </outcomeVariable>
+  </testResult>
+  <itemResult identifier="Q1" sequenceIndex="1" datestamp="2026-01-24T01:20:00Z" sessionStatus="final">
+    <outcomeVariable identifier="SCORE" baseType="float">
+      <value>2</value>
+    </outcomeVariable>
+    <outcomeVariable identifier="RUBRIC_1_MET" baseType="boolean">
+      <value>true</value>
+    </outcomeVariable>
+    <outcomeVariable identifier="RUBRIC_2_MET" baseType="boolean">
+      <value>false</value>
+    </outcomeVariable>
+  </itemResult>
+  <itemResult identifier="Q2" sequenceIndex="2" datestamp="2026-01-24T01:20:00Z" sessionStatus="final">
+    <outcomeVariable identifier="SCORE" baseType="float">
+      <value>3</value>
+    </outcomeVariable>
+    <outcomeVariable identifier="RUBRIC_1_MET" baseType="boolean">
+      <value>true</value>
+    </outcomeVariable>
+  </itemResult>
+</assessmentResult>

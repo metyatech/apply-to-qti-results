@@ -10,6 +10,7 @@ const RESULTS_INPUT = "results.input.xml";
 const RESULTS_EXPECTED = "results.expected.xml";
 const EXPECTED_ERROR = "expected-error.json";
 const EXPECTED_STDERR = "expected-stderr.txt";
+const MAPPING_INPUT = "mapping.csv";
 const SCORING_INPUT = "scoring.json";
 const OPTIONS_INPUT = "options.json";
 
@@ -19,6 +20,7 @@ export function runCase(caseName: string, caseDir: string): void {
   const expectedOutputPath = path.join(caseDir, RESULTS_EXPECTED);
   const expectedErrorPath = path.join(caseDir, EXPECTED_ERROR);
   const expectedStderrPath = path.join(caseDir, EXPECTED_STDERR);
+  const mappingPath = path.join(caseDir, MAPPING_INPUT);
   const optionsPath = path.join(caseDir, OPTIONS_INPUT);
 
   if (!fs.existsSync(resultsInputPath)) {
@@ -56,6 +58,7 @@ export function runCase(caseName: string, caseDir: string): void {
       resultsPath: resultsInputPath,
       itemPaths: itemSources,
       scoringPath,
+      mappingPath: fs.existsSync(mappingPath) ? mappingPath : undefined,
       options,
     });
     if (result.ok) {

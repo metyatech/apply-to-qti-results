@@ -10,6 +10,7 @@ type CliArgs = {
   items: string[];
   scoring: string | null;
   preserveMet: boolean;
+  mapping: string | null;
 };
 
 export function runCli(argv: string[]): void {
@@ -29,6 +30,10 @@ export function runCli(argv: string[]): void {
     writeError({ path: "/", reason: `missing scoring file: ${args.scoring}` });
     return;
   }
+  if (args.mapping && !fileExists(args.mapping)) {
+    writeError({ path: "/", reason: `missing mapping file: ${args.mapping}` });
+    return;
+  }
 
   for (const item of args.items) {
     if (!fileExists(item)) {
@@ -41,12 +46,14 @@ export function runCli(argv: string[]): void {
     const resultsXml = fs.readFileSync(args.results, "utf8");
     const itemSourceXmls = args.items.map((itemPath) => fs.readFileSync(itemPath, "utf8"));
     const scoringInput = JSON.parse(fs.readFileSync(args.scoring, "utf8")) as unknown;
+    const mappingCsv = args.mapping ? fs.readFileSync(args.mapping, "utf8") : undefined;
 
     const outputXml = applyScoringUpdates(
       {
         resultsXml,
         itemSourceXmls,
         scoringInput,
+        mappingCsv,
       },
       {
         preserveMet: args.preserveMet,
@@ -80,6 +87,7 @@ function parseArgs(argv: string[]): CliArgs {
     items: [],
     scoring: null,
     preserveMet: false,
+    mapping: null,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -99,6 +107,11 @@ function parseArgs(argv: string[]): CliArgs {
     }
     if (arg === "--scoring") {
       result.scoring = argv[i + 1] ?? null;
+      i += 1;
+      continue;
+    }
+    if (arg === "--mapping") {
+      result.mapping = argv[i + 1] ?? null;
       i += 1;
       continue;
     }

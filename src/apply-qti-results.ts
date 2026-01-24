@@ -8,6 +8,7 @@ type ApplyInput = {
   resultsXml: string;
   itemSourceXmls: string[];
   scoringInput: unknown;
+  mappingCsv?: string;
 };
 
 type ApplyOptions = {
@@ -18,6 +19,11 @@ type ApplyOptions = {
 type PreserveMetDowngradeNotice = {
   itemIdentifier: string;
   rubricIndex: number;
+};
+
+type IdentifierMapping = {
+  resultToItem: Map<string, string>;
+  itemToResult: Map<string, string>;
 };
 
 type RubricCriterion = {
@@ -73,14 +79,23 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
     itemSourceById.set(parsed.identifier, parsed.root);
   }
 
+  const mapping = input.mappingCsv ? parseMappingCsv(input.mappingCsv) : null;
+  if (mapping) {
+    validateMapping(mapping, itemResultById, itemSourceById);
+  }
+
   const rubricCache = new Map<string, Rubric>();
   const processedScores: Array<{ scaled: number; scale: number }> = [];
 
   for (const item of scoringItems) {
     const identifier = item.identifier;
-    const itemResult = itemResultById.get(identifier);
+    const resultIdentifier = mapping ? mapping.itemToResult.get(identifier) : identifier;
+    if (mapping && !resultIdentifier) {
+      failMapping("mapping missing for item identifier", identifier);
+    }
+    const itemResult = itemResultById.get(resultIdentifier);
     if (!itemResult) {
-      failItem(identifier, "itemResult not found");
+      failResultItem(resultIdentifier, "itemResult not found");
     }
 
     const itemSource = itemSourceById.get(identifier);
@@ -316,6 +331,73 @@ function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {
   return result;
 }
 
+function parseMappingCsv(csv: string): IdentifierMapping {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (lines.length === 0) {
+    failMapping("mapping file is empty");
+  }
+
+  const header = lines[0];
+  if (header !== "resultItemIdentifier,itemIdentifier") {
+    failMapping("mapping header must be resultItemIdentifier,itemIdentifier");
+  }
+
+  const resultToItem = new Map<string, string>();
+  const itemToResult = new Map<string, string>();
+
+  for (let index = 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    const parts = line.split(",");
+    if (parts.length !== 2) {
+      failMapping(`mapping row must have 2 columns at line ${index + 1}`);
+    }
+    const resultId = parts[0].trim();
+    const itemId = parts[1].trim();
+    if (!resultId || !itemId) {
+      failMapping(`mapping row missing identifier at line ${index + 1}`);
+    }
+    if (resultToItem.has(resultId)) {
+      failMapping(`duplicate resultItemIdentifier: ${resultId}`);
+    }
+    if (itemToResult.has(itemId)) {
+      failMapping(`duplicate itemIdentifier: ${itemId}`);
+    }
+    resultToItem.set(resultId, itemId);
+    itemToResult.set(itemId, resultId);
+  }
+
+  if (resultToItem.size === 0) {
+    failMapping("mapping file has no entries");
+  }
+
+  return { resultToItem, itemToResult };
+}
+
+function validateMapping(
+  mapping: IdentifierMapping,
+  itemResultById: Map<string, XmlObject>,
+  itemSourceById: Map<string, XmlObject>,
+): void {
+  for (const [resultId, itemId] of mapping.resultToItem.entries()) {
+    if (!itemResultById.has(resultId)) {
+      failMapping(`mapping refers to unknown result item identifier: ${resultId}`);
+    }
+    if (!itemSourceById.has(itemId)) {
+      failMapping(`mapped item identifier not found in item sources: ${itemId}`, itemId);
+    }
+  }
+
+  for (const resultId of itemResultById.keys()) {
+    if (!mapping.resultToItem.has(resultId)) {
+      failResultItem(resultId, `mapping missing for result item identifier`);
+    }
+  }
+}
+
 function ensureArray<T>(value: T | T[] | undefined | null): T[] {
   if (value === undefined || value === null) {
     return [];
@@ -388,4 +470,12 @@ function fail(reason: string, pathValue = "/", identifier?: string): never {
 
 function failItem(identifier: string, reason: string): never {
   fail(reason, `/assessmentResult/itemResult[@identifier='${identifier}']`, identifier);
+}
+
+function failResultItem(identifier: string, reason: string): never {
+  fail(reason, `/assessmentResult/itemResult[@identifier='${identifier}']`, identifier);
+}
+
+function failMapping(reason: string, identifier?: string): never {
+  fail(reason, "/mapping", identifier);
 }

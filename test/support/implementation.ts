@@ -8,6 +8,7 @@ type RunInput = {
   resultsPath: string;
   itemPaths: string[];
   scoringPath: string;
+  mappingPath?: string;
   options?: {
     preserveMet?: boolean;
   };
@@ -71,6 +72,9 @@ function buildArgs(baseArgs: string[], input: RunInput): string[] {
     args.push("--item", itemPath);
   }
   args.push("--scoring", input.scoringPath);
+  if (input.mappingPath) {
+    args.push("--mapping", input.mappingPath);
+  }
   if (input.options?.preserveMet) {
     args.push("--preserve-met");
   }

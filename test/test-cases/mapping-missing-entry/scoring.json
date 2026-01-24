@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Provides the correct value"
+        }
+      ]
+    }
+  ]
+}
