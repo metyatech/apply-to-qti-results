@@ -21,10 +21,8 @@ The runner invokes the scoring update implementation via an external command.
 
 ### Implementation command
 
-The test runner invokes the stub CLI at
-`test/stub/apply-qti-results.js`, which always returns a `not implemented`
-error. When the real implementation is ready, replace that file with your
-implementation (or a thin wrapper that calls it).
+The test runner invokes the CLI at `test/stub/apply-qti-results.js`.
+This file now contains the scoring update implementation used by the tests.
 
 The CLI must accept the following arguments:
 
