@@ -30,6 +30,24 @@ For local usage, you can run:
 npm run apply-results -- --results <results.xml> --item <item.xml> --scoring <scoring.json>
 ```
 
+## Inputs
+
+### `--results`
+QTI 3.0 Results Reporting XML with `assessmentResult` as the root element.
+This file is the target that will be updated. Example fixture:
+[`test/test-cases/basic/results.input.xml`](test/test-cases/basic/results.input.xml).
+
+### `--item`
+QTI 3.0 Item XML with `qti-assessment-item` as the root element. The item must
+contain a scorer rubric in `qti-rubric-block view="scorer"` with rubric lines
+formatted as `[<points>] <criterion>`. Example fixture:
+[`test/test-cases/basic/item-source.xml`](test/test-cases/basic/item-source.xml).
+You can pass multiple `--item` flags.
+
+### `--scoring`
+JSON input that matches [`docs/scoring-update-input.schema.json`](docs/scoring-update-input.schema.json).
+Example fixture: [`test/test-cases/basic/scoring.json`](test/test-cases/basic/scoring.json).
+
 The CLI must accept the following arguments:
 
 - `--results <path>`: results input XML.
