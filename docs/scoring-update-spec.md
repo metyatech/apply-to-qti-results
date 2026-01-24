@@ -100,6 +100,7 @@ points.
 Each item entry contains:
 - `identifier`: item identifier (must match `itemResult/@identifier`).
 - `criteria`: an array aligned to the rubric order.
+- `comment` (optional string): a per-item comment to store in the results output.
 
 Each criterion entry contains:
 - `met` (boolean): whether the criterion is satisfied.
@@ -120,6 +121,14 @@ matching `itemResult`:
 
 These rubric outcome variables are tool-defined but use standard QTI
 `outcomeVariable` elements.
+
+## Item comment output
+If `comment` is provided in the scoring input, the tool adds or updates an
+`outcomeVariable` under the matching `itemResult`:
+
+- `identifier`: `COMMENT`
+- `baseType`: `string`
+- `value`: the comment text
 
 ## Score calculation
 

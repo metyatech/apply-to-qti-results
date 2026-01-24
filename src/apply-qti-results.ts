@@ -113,6 +113,12 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
       failItem(identifier, "criteria must be an array");
     }
 
+    if (item.comment !== undefined) {
+      if (typeof item.comment !== "string" || item.comment.length === 0) {
+        failItem(identifier, "comment must be a non-empty string");
+      }
+    }
+
     if (item.criteria.length !== rubric.criteria.length) {
       failItem(
         identifier,
@@ -170,6 +176,10 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
       );
     }
 
+    if (item.comment !== undefined) {
+      upsertOutcomeVariable(outcomes, "COMMENT", "string", item.comment);
+    }
+
     upsertOutcomeVariable(
       outcomes,
       "SCORE",
@@ -200,7 +210,9 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
   return buildXml(resultsDoc);
 }
 
-function readScoringItems(scoringInput: unknown): Array<{ identifier: string; criteria: unknown }> {
+function readScoringItems(
+  scoringInput: unknown,
+): Array<{ identifier: string; criteria: unknown; comment?: unknown }> {
   if (!scoringInput || typeof scoringInput !== "object" || Array.isArray(scoringInput)) {
     fail("scoring input must be an object", "/scoring");
   }
@@ -220,6 +232,7 @@ function readScoringItems(scoringInput: unknown): Array<{ identifier: string; cr
     return {
       identifier,
       criteria: (item as XmlObject).criteria,
+      comment: (item as XmlObject).comment,
     };
   });
 }

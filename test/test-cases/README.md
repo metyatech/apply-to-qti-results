@@ -18,6 +18,8 @@ implementation test harness later.
 - `preserve-met/` success case that preserves existing `RUBRIC_<n>_MET=true`.
 - `mapping-basic/` success case with `mapping.csv`.
 - `mapping-missing-entry/` error when mapping omits a result identifier.
+- `comment-basic/` success case that writes an item comment.
+- `comment-not-string/` error when comment is not a string.
 - `rubric-parse-failure/` error when rubric line format is invalid.
 - `criteria-not-array/` error when criteria is not an array.
 - `criterion-met-not-boolean/` error when met is not a boolean.
@@ -45,6 +47,8 @@ implementation test harness later.
 - [preserve-met](preserve-met)
 - [mapping-basic](mapping-basic)
 - [mapping-missing-entry](mapping-missing-entry)
+- [comment-basic](comment-basic)
+- [comment-not-string](comment-not-string)
 - [rubric-parse-failure](rubric-parse-failure)
 - [criteria-not-array](criteria-not-array)
 - [criterion-met-not-boolean](criterion-met-not-boolean)
