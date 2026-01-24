@@ -15,6 +15,7 @@ implementation test harness later.
 - `missing-results-namespace/` error when results namespace is missing.
 - `itemresult-not-found/` error when scoring references an item missing in results.
 - `scoring-source-not-found/` error when scoring references a missing item source.
+- `preserve-met/` success case that preserves existing `RUBRIC_<n>_MET=true`.
 - `rubric-parse-failure/` error when rubric line format is invalid.
 - `criteria-not-array/` error when criteria is not an array.
 - `criterion-met-not-boolean/` error when met is not a boolean.
@@ -39,6 +40,7 @@ implementation test harness later.
 - [missing-results-namespace](missing-results-namespace)
 - [itemresult-not-found](itemresult-not-found)
 - [scoring-source-not-found](scoring-source-not-found)
+- [preserve-met](preserve-met)
 - [rubric-parse-failure](rubric-parse-failure)
 - [criteria-not-array](criteria-not-array)
 - [criterion-met-not-boolean](criterion-met-not-boolean)

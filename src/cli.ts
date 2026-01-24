@@ -9,6 +9,7 @@ type CliArgs = {
   results: string | null;
   items: string[];
   scoring: string | null;
+  preserveMet: boolean;
 };
 
 export function runCli(argv: string[]): void {
@@ -41,11 +42,21 @@ export function runCli(argv: string[]): void {
     const itemSourceXmls = args.items.map((itemPath) => fs.readFileSync(itemPath, "utf8"));
     const scoringInput = JSON.parse(fs.readFileSync(args.scoring, "utf8")) as unknown;
 
-    const outputXml = applyScoringUpdates({
-      resultsXml,
-      itemSourceXmls,
-      scoringInput,
-    });
+    const outputXml = applyScoringUpdates(
+      {
+        resultsXml,
+        itemSourceXmls,
+        scoringInput,
+      },
+      {
+        preserveMet: args.preserveMet,
+        onPreserveMetDowngrade: (notice) => {
+          process.stderr.write(
+            `preserve-met: ${notice.itemIdentifier} RUBRIC_${notice.rubricIndex}_MET stays true (requested false)\n`,
+          );
+        },
+      },
+    );
     process.stdout.write(outputXml);
   } catch (error) {
     if (error instanceof ScoringFailure) {
@@ -68,6 +79,7 @@ function parseArgs(argv: string[]): CliArgs {
     results: null,
     items: [],
     scoring: null,
+    preserveMet: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -88,6 +100,11 @@ function parseArgs(argv: string[]): CliArgs {
     if (arg === "--scoring") {
       result.scoring = argv[i + 1] ?? null;
       i += 1;
+      continue;
+    }
+    if (arg === "--preserve-met") {
+      result.preserveMet = true;
+      continue;
     }
   }
 

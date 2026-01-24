@@ -8,16 +8,21 @@ type RunInput = {
   resultsPath: string;
   itemPaths: string[];
   scoringPath: string;
+  options?: {
+    preserveMet?: boolean;
+  };
 };
 
 type RunSuccess = {
   ok: true;
   outputXml: string;
+  stderr: string;
 };
 
 type RunFailure = {
   ok: false;
   error: ScoringError;
+  stderr: string;
 };
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,10 +44,12 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   }
 
   const stdout = (result.stdout || "").trim();
+  const stderr = (result.stderr || "").replace(/\r\n/g, "\n").trimEnd();
   if (result.status === 0) {
     return {
       ok: true,
       outputXml: stdout,
+      stderr,
     };
   }
 
@@ -53,6 +60,7 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   return {
     ok: false,
     error: JSON.parse(stdout) as ScoringError,
+    stderr,
   };
 }
 
@@ -63,5 +71,8 @@ function buildArgs(baseArgs: string[], input: RunInput): string[] {
     args.push("--item", itemPath);
   }
   args.push("--scoring", input.scoringPath);
+  if (input.options?.preserveMet) {
+    args.push("--preserve-met");
+  }
   return args;
 }

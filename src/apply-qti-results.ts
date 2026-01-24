@@ -10,6 +10,16 @@ type ApplyInput = {
   scoringInput: unknown;
 };
 
+type ApplyOptions = {
+  preserveMet?: boolean;
+  onPreserveMetDowngrade?: (notice: PreserveMetDowngradeNotice) => void;
+};
+
+type PreserveMetDowngradeNotice = {
+  itemIdentifier: string;
+  rubricIndex: number;
+};
+
 type RubricCriterion = {
   points: string;
   text: string;
@@ -22,7 +32,9 @@ type Rubric = {
 
 type XmlNode = XmlObject | string | number | boolean | null | undefined;
 
-export function applyScoringUpdates(input: ApplyInput): string {
+export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {}): string {
+  const preserveMet = Boolean(options.preserveMet);
+  const onPreserveMetDowngrade = options.onPreserveMetDowngrade;
   const scoringItems = readScoringItems(input.scoringInput);
   const resultsDoc = parseXmlOrFail(input.resultsXml, "failed to parse results");
   const assessmentResult = (resultsDoc as XmlObject).assessmentResult as XmlObject | undefined;
@@ -95,6 +107,7 @@ export function applyScoringUpdates(input: ApplyInput): string {
 
     const outcomes = ensureArray(itemResult.outcomeVariable) as XmlObject[];
     itemResult.outcomeVariable = outcomes;
+    const existingRubricMet = preserveMet ? extractExistingRubricMet(outcomes) : new Map<number, boolean>();
 
     let itemScoreScaled = 0;
     for (let index = 0; index < item.criteria.length; index += 1) {
@@ -118,7 +131,19 @@ export function applyScoringUpdates(input: ApplyInput): string {
         }
       }
 
-      if ((criterion as XmlObject).met) {
+      const requestedMet = Boolean((criterion as XmlObject).met);
+      const existingMet = existingRubricMet.get(index + 1);
+      const preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
+      const finalMet = preserveDowngrade ? true : requestedMet;
+
+      if (preserveDowngrade) {
+        onPreserveMetDowngrade?.({
+          itemIdentifier: identifier,
+          rubricIndex: index + 1,
+        });
+      }
+
+      if (finalMet) {
         itemScoreScaled += toScaledInt(rubricCriterion.points, rubric.scaleDigits);
       }
 
@@ -126,7 +151,7 @@ export function applyScoringUpdates(input: ApplyInput): string {
         outcomes,
         `RUBRIC_${index + 1}_MET`,
         "boolean",
-        (criterion as XmlObject).met ? "true" : "false",
+        finalMet ? "true" : "false",
       );
     }
 
@@ -264,6 +289,31 @@ function getTextContent(node: XmlNode): string {
     return String((node as XmlObject)["#text"]);
   }
   return "";
+}
+
+function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {
+  const result = new Map<number, boolean>();
+  for (const outcome of outcomes) {
+    const identifier = outcome?.["@_identifier"];
+    if (typeof identifier !== "string") {
+      continue;
+    }
+    const match = /^RUBRIC_(\d+)_MET$/.exec(identifier);
+    if (!match) {
+      continue;
+    }
+    const index = Number(match[1]);
+    if (!Number.isFinite(index)) {
+      continue;
+    }
+    const rawValue = getTextContent((outcome as XmlObject).value);
+    if (rawValue === "true") {
+      result.set(index, true);
+    } else if (rawValue === "false") {
+      result.set(index, false);
+    }
+  }
+  return result;
 }
 
 function ensureArray<T>(value: T | T[] | undefined | null): T[] {

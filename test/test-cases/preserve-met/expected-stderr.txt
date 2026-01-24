@@ -1,0 +1,1 @@
+preserve-met: item-1 RUBRIC_1_MET stays true (requested false)

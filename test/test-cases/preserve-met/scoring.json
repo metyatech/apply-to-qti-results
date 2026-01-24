@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": false,
+          "criterionText": "Identifies the main idea"
+        },
+        {
+          "met": true,
+          "criterionText": "Uses supporting detail"
+        }
+      ]
+    }
+  ]
+}

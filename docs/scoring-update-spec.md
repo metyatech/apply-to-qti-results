@@ -102,6 +102,15 @@ These rubric outcome variables are tool-defined but use standard QTI
 - `testResult/outcomeVariable identifier="SCORE"` is updated to the sum of all
   item-level scores written by this tool.
 
+## Optional mode: preserve met outcomes
+When the tool is run with a "preserve met" mode enabled, it must not change an
+existing `RUBRIC_<index>_MET` value from `true` to `false`. In that mode:
+
+- If the existing `RUBRIC_<index>_MET` is `true` and the input `met` is `false`,
+  the output remains `true`.
+- Item-level and test-level `SCORE` values are calculated using the preserved
+  rubric outcomes.
+
 ## Validation and errors
 The tool must validate:
 - Root element name and namespace of the results document.

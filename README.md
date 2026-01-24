@@ -27,7 +27,7 @@ forwards to the implementation in `src/cli.ts`.
 For local usage, you can run:
 
 ```sh
-npm run apply-results -- --results <results.xml> --item <item.xml> --scoring <scoring.json>
+npm run apply-results -- --results <results.xml> --item <item.xml> --scoring <scoring.json> [--preserve-met]
 ```
 
 ## Inputs
@@ -47,6 +47,12 @@ You can pass multiple `--item` flags.
 ### `--scoring`
 JSON input that matches [`docs/scoring-update-input.schema.json`](docs/scoring-update-input.schema.json).
 Example fixture: [`test/test-cases/basic/scoring.json`](test/test-cases/basic/scoring.json).
+
+### `--preserve-met` (optional)
+When enabled, existing `RUBRIC_<n>_MET=true` values in the results XML are never
+downgraded to `false`. The item-level and test-level `SCORE` are calculated
+using the preserved rubric outcomes.
+If a downgrade is prevented, the CLI writes a warning to stderr.
 
 The CLI must accept the following arguments:
 
