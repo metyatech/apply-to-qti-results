@@ -11,6 +11,14 @@ implementation test harness later.
 - `criteria-length-mismatch/` error when criteria count does not match rubric.
 - `criterion-text-mismatch/` error when `criterionText` does not match rubric.
 - `missing-rubric/` error when the item has no scorer rubric.
+- `invalid-results-namespace/` error when results namespace is unexpected.
+- `missing-results-namespace/` error when results namespace is missing.
+- `itemresult-not-found/` error when scoring references an item missing in results.
+- `scoring-source-not-found/` error when scoring references a missing item source.
+- `rubric-parse-failure/` error when rubric line format is invalid.
+- `criteria-not-array/` error when criteria is not an array.
+- `criterion-met-not-boolean/` error when met is not a boolean.
+- `scoring-items-empty/` error when scoring input has no items.
 
 ## Conventions
 - Results documents use the QTI 3.0 Results Reporting namespace
@@ -27,3 +35,11 @@ implementation test harness later.
 - [criteria-length-mismatch](criteria-length-mismatch)
 - [criterion-text-mismatch](criterion-text-mismatch)
 - [missing-rubric](missing-rubric)
+- [invalid-results-namespace](invalid-results-namespace)
+- [missing-results-namespace](missing-results-namespace)
+- [itemresult-not-found](itemresult-not-found)
+- [scoring-source-not-found](scoring-source-not-found)
+- [rubric-parse-failure](rubric-parse-failure)
+- [criteria-not-array](criteria-not-array)
+- [criterion-met-not-boolean](criterion-met-not-boolean)
+- [scoring-items-empty](scoring-items-empty)

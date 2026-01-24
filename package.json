@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "apply-results": "tsx src/cli.ts",
     "test": "tsx test/run-test-cases.ts"
   },
   "devDependencies": {

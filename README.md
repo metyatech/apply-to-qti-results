@@ -21,8 +21,14 @@ The runner invokes the scoring update implementation via an external command.
 
 ### Implementation command
 
-The test runner invokes the CLI at `test/stub/apply-qti-results.js`.
-This file now contains the scoring update implementation used by the tests.
+The test runner invokes the CLI at `test/stub/apply-qti-results.ts`, which
+forwards to the implementation in `src/cli.ts`.
+
+For local usage, you can run:
+
+```sh
+npm run apply-results -- --results <results.xml> --item <item.xml> --scoring <scoring.json>
+```
 
 The CLI must accept the following arguments:
 

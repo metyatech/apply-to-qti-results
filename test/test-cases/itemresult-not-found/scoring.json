@@ -1,0 +1,15 @@
+{
+  "assessmentIdentifier": "test-2",
+  "candidateIdentifier": "candidate-2",
+  "items": [
+    {
+      "identifier": "item-2",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Provides the required answer"
+        }
+      ]
+    }
+  ]
+}

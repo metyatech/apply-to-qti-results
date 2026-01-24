@@ -1,0 +1,5 @@
+{
+  "path": "/assessmentResult/itemResult[@identifier='item-1']",
+  "identifier": "item-1",
+  "reason": "criteria must be an array"
+}

@@ -1,0 +1,14 @@
+{
+  "assessmentIdentifier": "test-4",
+  "candidateIdentifier": "candidate-4",
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item
+    xmlns="http://www.imsglobal.org/xsd/imsqti_v3p0"
+    identifier="item-2"
+    title="Wrong Source"
+    adaptive="false"
+    time-dependent="false">
+  <qti-item-body>
+    <qti-rubric-block view="scorer">
+      <qti-p>[1] Provides the required answer</qti-p>
+    </qti-rubric-block>
+  </qti-item-body>
+</qti-assessment-item>

@@ -23,7 +23,8 @@ type RunFailure = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const COMMAND = process.execPath;
-const ARGS = [path.resolve(__dirname, "..", "stub", "apply-qti-results.js")];
+const TSX_CLI = path.resolve(__dirname, "..", "..", "node_modules", "tsx", "dist", "cli.mjs");
+const ARGS = [TSX_CLI, path.resolve(__dirname, "..", "stub", "apply-qti-results.ts")];
 
 export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   const args = buildArgs(ARGS, input);

@@ -1,0 +1,5 @@
+{
+  "path": "/assessmentResult/itemResult[@identifier='item-1']",
+  "identifier": "item-1",
+  "reason": "rubric line parse failed at index 1"
+}
