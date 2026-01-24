@@ -1,0 +1,14 @@
+{
+  "name": "apply-to-qti-results",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsx test/run-test-cases.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "fast-xml-parser": "^4.3.6",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.5"
+  }
+}
