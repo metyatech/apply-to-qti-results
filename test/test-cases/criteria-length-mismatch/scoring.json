@@ -1,0 +1,15 @@
+{
+  "assessmentIdentifier": "test-3",
+  "candidateIdentifier": "candidate-3",
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Identifies chlorophyll as a light-absorbing pigment"
+        }
+      ]
+    }
+  ]
+}

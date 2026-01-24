@@ -1,0 +1,5 @@
+{
+  "path": "/assessmentResult/itemResult[@identifier='item-1']",
+  "identifier": "item-1",
+  "reason": "criterionText does not match rubric criterion at index 2"
+}

@@ -1,0 +1,19 @@
+{
+  "assessmentIdentifier": "test-4",
+  "candidateIdentifier": "candidate-4",
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Identifies chlorophyll as a light-absorbing pigment"
+        },
+        {
+          "met": true,
+          "criterionText": "Mentions conversion of light energy to chemical storage"
+        }
+      ]
+    }
+  ]
+}

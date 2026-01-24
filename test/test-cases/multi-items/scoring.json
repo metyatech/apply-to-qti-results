@@ -1,0 +1,28 @@
+{
+  "assessmentIdentifier": "test-2",
+  "candidateIdentifier": "candidate-2",
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Selects the only prime number"
+        },
+        {
+          "met": false,
+          "criterionText": "Avoids selecting a composite number"
+        }
+      ]
+    },
+    {
+      "identifier": "item-2",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Provides H2O"
+        }
+      ]
+    }
+  ]
+}
