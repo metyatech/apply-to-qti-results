@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { ScoringError } from "./types.ts";
+import { hasGlobPattern } from "../../src/glob.ts";
 
 type RunInput = {
   resultsPath: string;
@@ -47,7 +48,7 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   const stdout = (result.stdout || "").trim();
   const stderr = (result.stderr || "").replace(/\r\n/g, "\n").trimEnd();
   if (result.status === 0) {
-    const outputXml = fs.readFileSync(input.resultsPath, "utf8");
+    const outputXml = hasGlobPattern(input.resultsPath) ? "" : fs.readFileSync(input.resultsPath, "utf8");
     return {
       ok: true,
       outputXml,

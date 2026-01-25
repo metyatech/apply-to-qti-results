@@ -1,0 +1,4 @@
+{
+  "resultsGlob": "results/*.xml",
+  "scoringGlob": "scoring/*.json"
+}

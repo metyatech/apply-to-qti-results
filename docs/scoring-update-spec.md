@@ -17,6 +17,18 @@ other custom data as-is.
 - **Scoring updates**: JSON that conforms to
   [`scoring-update-input.schema.json`](scoring-update-input.schema.json).
 
+### Glob inputs
+The tool accepts glob patterns for both the results and scoring inputs:
+
+- Supported wildcards: `*`, `**`, `?`
+- Results and scoring inputs are matched by **relative path without extension**.
+  The relative path is computed from the glob root (the path prefix before the
+  first wildcard). For example, `results/classA/a.xml` maps to
+  `scoring/classA/a.json`.
+- Matching is case-insensitive.
+- If the results glob expands to multiple files, the scoring input must also be
+  a glob.
+
 ## Scope
 
 ### In scope
@@ -136,6 +148,9 @@ existing `RUBRIC_<index>_MET` value from `true` to `false`. In that mode:
   results XML and writes nothing to stdout.
 - On error, the tool writes the error JSON to stdout and leaves the input
   results XML file unchanged.
+- When a results glob matches multiple files, the tool processes matches in
+  deterministic order and stops on the first failure. Any files that were
+  already updated before the failure remain updated.
 
 ## Validation and errors
 The tool must validate:
@@ -146,6 +161,8 @@ The tool must validate:
 - Rubric parsing succeeds and yields a maximum score.
 - Each `criteria` array length equals the rubric criteria count.
 - `criterionText` (when present) matches the rubric criterion text exactly.
+- Results and scoring globs (when used) resolve to at least one file.
+- When globbing, each results entry has exactly one matching scoring file.
 
 On error, the tool returns:
 - the element path

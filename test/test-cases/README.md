@@ -24,6 +24,8 @@ implementation test harness later.
 - `criteria-not-array/` error when criteria is not an array.
 - `criterion-met-not-boolean/` error when met is not a boolean.
 - `scoring-items-empty/` error when scoring input has no items.
+- `glob-basic/` success case that applies scoring to multiple results via glob input.
+- `glob-missing-scoring/` error when a results glob entry has no matching scoring file.
 
 ## Conventions
 - Results documents use the QTI 3.0 Results Reporting namespace
@@ -34,6 +36,8 @@ implementation test harness later.
 - Each case includes `assessment-test.qti.xml` that references the item sources.
 - Expected error files are `expected-error.json` with the minimum fields:
   `path`, `identifier` (when applicable), and `reason`.
+- Glob cases include `glob.json` plus `results/` and `scoring/` directories.
+- Glob success cases store expected outputs under `expected/` with matching relative paths.
 
 ## Files
 - [basic](basic)
@@ -54,3 +58,5 @@ implementation test harness later.
 - [criteria-not-array](criteria-not-array)
 - [criterion-met-not-boolean](criterion-met-not-boolean)
 - [scoring-items-empty](scoring-items-empty)
+- [glob-basic](glob-basic)
+- [glob-missing-scoring](glob-missing-scoring)

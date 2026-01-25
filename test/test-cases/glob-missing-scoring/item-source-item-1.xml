@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item
+    xmlns="http://www.imsglobal.org/xsd/imsqti_v3p0"
+    identifier="item-1"
+    title="Glob Item"
+    adaptive="false"
+    time-dependent="false">
+  <qti-item-body>
+    <qti-rubric-block view="scorer">
+      <qti-p>[2] Uses correct formula</qti-p>
+      <qti-p>[1] Shows work</qti-p>
+    </qti-rubric-block>
+  </qti-item-body>
+</qti-assessment-item>

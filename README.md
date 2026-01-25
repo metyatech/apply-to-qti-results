@@ -39,6 +39,11 @@ QTI 3.0 Results Reporting XML with `assessmentResult` as the root element.
 This file is the target that will be updated. Example fixture:
 [`test/test-cases/basic/results.input.xml`](test/test-cases/basic/results.input.xml).
 
+`--results` also accepts glob patterns (`*`, `**`, `?`) to target multiple
+results files. When a glob is used, the CLI processes all matches in
+deterministic order and stops on the first failure. Example layout:
+[`test/test-cases/glob-basic`](test/test-cases/glob-basic).
+
 ### `--assessment-test`
 QTI 3.0 Assessment Test XML with `qti-assessment-test` as the root element.
 The test must reference item files via `qti-assessment-item-ref` entries with
@@ -55,6 +60,13 @@ Scoring item entries can include `comment` to store a per-item comment in the
 results output. If `comment` is provided without `criteria`, only the comment
 is updated.
 
+`--scoring` also accepts glob patterns when `--results` is a glob. The tool
+matches results and scoring files by **relative path without the extension**,
+using the glob root directory as the base. For example, `results/classA/a.xml`
+matches `scoring/classA/a.json`.
+If `--results` expands to multiple files, `--scoring` must also be a glob.
+Matching is case-insensitive.
+
 ### `--preserve-met` (optional)
 When enabled, existing `RUBRIC_<n>_MET=true` values in the results XML are never
 downgraded to `false`. The item-level and test-level `SCORE` are calculated
@@ -63,9 +75,9 @@ If a downgrade is prevented, the CLI writes a warning to stderr.
 
 The CLI must accept the following arguments:
 
-- `--results <path>`: results input XML.
+- `--results <path|glob>`: results input XML (or glob).
 - `--assessment-test <path>`: assessment test XML that references item files.
-- `--scoring <path>`: scoring input JSON.
+- `--scoring <path|glob>`: scoring input JSON (or glob when results is a glob).
 - `--preserve-met`: optional flag to prevent `true` → `false` rubric downgrades.
 
 The CLI must write to stdout:

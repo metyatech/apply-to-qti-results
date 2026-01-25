@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { applyScoringUpdates } from "./apply-qti-results.ts";
+import { expandPathOrGlob, hasGlobPattern } from "./glob.ts";
 import { parseXml, type XmlObject } from "./xml.ts";
 import { ScoringFailure, type ScoringError } from "./types.ts";
 
@@ -21,12 +22,12 @@ export function runCli(argv: string[]): void {
     return;
   }
 
-  if (!fileExists(args.results)) {
+  if (!hasGlobPattern(args.results) && !fileExists(args.results)) {
     writeError({ path: "/", reason: `missing results file: ${args.results}` });
     return;
   }
 
-  if (!fileExists(args.scoring)) {
+  if (!hasGlobPattern(args.scoring) && !fileExists(args.scoring)) {
     writeError({ path: "/", reason: `missing scoring file: ${args.scoring}` });
     return;
   }
@@ -36,8 +37,6 @@ export function runCli(argv: string[]): void {
   }
 
   try {
-    const resultsXml = fs.readFileSync(args.results, "utf8");
-    const scoringInput = JSON.parse(fs.readFileSync(args.scoring, "utf8")) as unknown;
     const assessmentTestXml = fs.readFileSync(args.assessmentTest, "utf8");
     const testDir = path.dirname(args.assessmentTest);
     const assessmentTest = parseAssessmentTest(assessmentTestXml);
@@ -49,23 +48,38 @@ export function runCli(argv: string[]): void {
       return fs.readFileSync(itemPath, "utf8");
     });
 
-    const outputXml = applyScoringUpdates(
-      {
-        resultsXml,
-        itemSourceXmls,
-        scoringInput,
-        itemOrder: assessmentTest.itemRefs.map((ref) => ref.identifier),
-      },
-      {
-        preserveMet: args.preserveMet,
-        onPreserveMetDowngrade: (notice) => {
-          process.stderr.write(
-            `preserve-met: ${notice.itemIdentifier} RUBRIC_${notice.rubricIndex}_MET stays true (requested false)\n`,
-          );
-        },
-      },
-    );
-    writeResultsInPlace(args.results, outputXml);
+    const itemOrder = assessmentTest.itemRefs.map((ref) => ref.identifier);
+    const inputPairs = resolveInputPairs(args.results, args.scoring);
+    const isBatch = inputPairs.length > 1;
+
+    for (const pair of inputPairs) {
+      try {
+        const resultsXml = fs.readFileSync(pair.resultsPath, "utf8");
+        const scoringInput = JSON.parse(fs.readFileSync(pair.scoringPath, "utf8")) as unknown;
+        const outputXml = applyScoringUpdates(
+          {
+            resultsXml,
+            itemSourceXmls,
+            scoringInput,
+            itemOrder,
+          },
+          {
+            preserveMet: args.preserveMet,
+            onPreserveMetDowngrade: (notice) => {
+              process.stderr.write(
+                `preserve-met: ${notice.itemIdentifier} RUBRIC_${notice.rubricIndex}_MET stays true (requested false)\n`,
+              );
+            },
+          },
+        );
+        writeResultsInPlace(pair.resultsPath, outputXml);
+      } catch (error) {
+        if (isBatch) {
+          process.stderr.write(`batch: failed for results file ${pair.resultsPath}\n`);
+        }
+        throw error;
+      }
+    }
   } catch (error) {
     if (error instanceof ScoringFailure) {
       writeError(error.payload);
@@ -144,6 +158,73 @@ const __filename = fileURLToPath(import.meta.url);
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
   runCli(process.argv.slice(2));
+}
+
+type InputPair = {
+  resultsPath: string;
+  scoringPath: string;
+};
+
+function resolveInputPairs(resultsArg: string, scoringArg: string): InputPair[] {
+  const resultsExpansion = expandPathOrGlob(resultsArg);
+  if (resultsExpansion.matches.length === 0) {
+    failInput("results", `results glob matched no files: ${resultsArg}`);
+  }
+
+  const scoringExpansion = expandPathOrGlob(scoringArg);
+  if (scoringExpansion.matches.length === 0) {
+    failInput("scoring", `scoring glob matched no files: ${scoringArg}`);
+  }
+
+  if (resultsExpansion.matches.length > 1 && !scoringExpansion.isGlob) {
+    failInput("scoring", "scoring must be a glob when results matches multiple files");
+  }
+
+  if (resultsExpansion.matches.length === 1 && scoringExpansion.matches.length === 1) {
+    return [
+      {
+        resultsPath: resultsExpansion.matches[0],
+        scoringPath: scoringExpansion.matches[0],
+      },
+    ];
+  }
+
+  const scoringByKey = new Map<string, string>();
+  for (const scoringPath of scoringExpansion.matches) {
+    const key = buildMatchKey(scoringExpansion.rootDir, scoringPath);
+    if (scoringByKey.has(key)) {
+      failInput("scoring", `scoring glob has duplicate entry for: ${key}`);
+    }
+    scoringByKey.set(key, scoringPath);
+  }
+
+  const pairs: InputPair[] = [];
+  for (const resultsPath of resultsExpansion.matches) {
+    const key = buildMatchKey(resultsExpansion.rootDir, resultsPath);
+    const scoringPath = scoringByKey.get(key);
+    if (!scoringPath) {
+      failInput("scoring", `scoring file not found for results entry: ${key}`);
+    }
+    pairs.push({ resultsPath, scoringPath });
+  }
+
+  pairs.sort((a, b) => a.resultsPath.localeCompare(b.resultsPath));
+  return pairs;
+}
+
+function buildMatchKey(rootDir: string, filePath: string): string {
+  const relativePath = path.relative(rootDir, filePath);
+  const parsed = path.parse(relativePath);
+  const withoutExtension = parsed.dir ? path.join(parsed.dir, parsed.name) : parsed.name;
+  return normalizeKey(withoutExtension);
+}
+
+function normalizeKey(value: string): string {
+  return value.replace(/\\/g, "/").toLowerCase();
+}
+
+function failInput(inputName: "results" | "scoring", reason: string): never {
+  throw new ScoringFailure({ path: `/${inputName}`, reason });
 }
 
 type AssessmentTestRef = {
