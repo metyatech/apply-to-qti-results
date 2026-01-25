@@ -105,6 +105,8 @@ type GlobConfig = {
   scoringGlob: string;
   assessmentTest?: string;
   expectedDir?: string;
+  resultsRegex?: string;
+  scoringTemplate?: string;
 };
 
 function runGlobCase(caseDir: string, globConfigPath: string): void {
@@ -153,6 +155,8 @@ function runGlobCase(caseDir: string, globConfigPath: string): void {
       resultsPath: tempResultsGlob,
       assessmentTestPath,
       scoringPath: scoringGlob,
+      resultsRegex: config.resultsRegex,
+      scoringTemplate: config.scoringTemplate,
     });
     if (result.ok) {
       actualResult = result.outputXml;

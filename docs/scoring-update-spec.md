@@ -29,6 +29,22 @@ The tool accepts glob patterns for both the results and scoring inputs:
 - If the results glob expands to multiple files, the scoring input must also be
   a glob.
 
+### Regex mapping (optional)
+When `--results-regex` and `--scoring-template` are provided, the tool uses the
+results regex captures to resolve the scoring file path:
+
+- The regex is applied to the results relative path from the glob root using
+  forward slashes (for example, `classA/assessmentResult-1.xml`).
+- The regex must match the entire relative path and is case-insensitive.
+- The scoring template is resolved relative to the scoring glob root directory.
+- Supported template tokens:
+  - `{path}`, `{dir}`, `{base}`, `{ext}`
+  - `{1}`, `{2}`, ... for numbered capture groups
+  - `{name}` for named capture groups
+
+See the regex mapping example in
+[`test/test-cases/glob-regex-basic`](../test/test-cases/glob-regex-basic).
+
 ## Scope
 
 ### In scope
@@ -163,6 +179,10 @@ The tool must validate:
 - `criterionText` (when present) matches the rubric criterion text exactly.
 - Results and scoring globs (when used) resolve to at least one file.
 - When globbing, each results entry has exactly one matching scoring file.
+- When regex mapping is enabled, the results regex is valid and matches every
+  results entry.
+- When regex mapping is enabled, the scoring template resolves to an existing
+  scoring file for every results entry.
 
 On error, the tool returns:
 - the element path

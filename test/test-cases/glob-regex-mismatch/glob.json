@@ -1,0 +1,6 @@
+{
+  "resultsGlob": "results/*.xml",
+  "scoringGlob": "scoring/scoring-update-input-*.json",
+  "resultsRegex": "assessmentResult-(?<id>\\d+)\\.xml",
+  "scoringTemplate": "scoring-update-input-{id}.json"
+}

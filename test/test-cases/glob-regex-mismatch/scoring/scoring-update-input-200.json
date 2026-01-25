@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Gives correct answer"
+        },
+        {
+          "met": true,
+          "criterionText": "Explains reasoning"
+        }
+      ]
+    }
+  ]
+}

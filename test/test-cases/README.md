@@ -26,6 +26,8 @@ implementation test harness later.
 - `scoring-items-empty/` error when scoring input has no items.
 - `glob-basic/` success case that applies scoring to multiple results via glob input.
 - `glob-missing-scoring/` error when a results glob entry has no matching scoring file.
+- `glob-regex-basic/` success case that maps results to scoring via results regex and template.
+- `glob-regex-mismatch/` error when a results file does not match the results regex.
 
 ## Conventions
 - Results documents use the QTI 3.0 Results Reporting namespace
@@ -38,6 +40,7 @@ implementation test harness later.
   `path`, `identifier` (when applicable), and `reason`.
 - Glob cases include `glob.json` plus `results/` and `scoring/` directories.
 - Glob success cases store expected outputs under `expected/` with matching relative paths.
+- Regex glob cases add `resultsRegex` and `scoringTemplate` in `glob.json`.
 
 ## Files
 - [basic](basic)
@@ -60,3 +63,5 @@ implementation test harness later.
 - [scoring-items-empty](scoring-items-empty)
 - [glob-basic](glob-basic)
 - [glob-missing-scoring](glob-missing-scoring)
+- [glob-regex-basic](glob-regex-basic)
+- [glob-regex-mismatch](glob-regex-mismatch)

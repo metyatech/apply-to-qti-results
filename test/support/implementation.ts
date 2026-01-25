@@ -10,6 +10,8 @@ type RunInput = {
   resultsPath: string;
   assessmentTestPath: string;
   scoringPath: string;
+  resultsRegex?: string;
+  scoringTemplate?: string;
   options?: {
     preserveMet?: boolean;
   };
@@ -72,6 +74,12 @@ function buildArgs(baseArgs: string[], input: RunInput): string[] {
   args.push("--results", input.resultsPath);
   args.push("--assessment-test", input.assessmentTestPath);
   args.push("--scoring", input.scoringPath);
+  if (input.resultsRegex) {
+    args.push("--results-regex", input.resultsRegex);
+  }
+  if (input.scoringTemplate) {
+    args.push("--scoring-template", input.scoringTemplate);
+  }
   if (input.options?.preserveMet) {
     args.push("--preserve-met");
   }
