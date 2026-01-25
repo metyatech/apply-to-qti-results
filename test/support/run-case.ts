@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
+import os from "node:os";
 
 import { runImplementation } from "./implementation.ts";
 import type { ScoringError } from "./types.ts";
@@ -46,40 +47,50 @@ export function runCase(caseName: string, caseDir: string): void {
   const options = fs.existsSync(optionsPath)
     ? (JSON.parse(fs.readFileSync(optionsPath, "utf8")) as { preserveMet?: boolean })
     : undefined;
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "apply-qti-results-"));
+  const tempResultsPath = path.join(tempDir, RESULTS_INPUT);
+  fs.copyFileSync(resultsInputPath, tempResultsPath);
 
   try {
-    const result = runImplementation({
-      resultsPath: resultsInputPath,
-      assessmentTestPath,
-      scoringPath,
-      options,
-    });
-    if (result.ok) {
-      actualResult = result.outputXml;
-      actualStderr = result.stderr;
-    } else {
-      actualResult = result.error;
-      actualStderr = result.stderr;
+    try {
+      const result = runImplementation({
+        resultsPath: tempResultsPath,
+        assessmentTestPath,
+        scoringPath,
+        options,
+      });
+      if (result.ok) {
+        actualResult = result.outputXml;
+        actualStderr = result.stderr;
+      } else {
+        actualResult = result.error;
+        actualStderr = result.stderr;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Unhandled error: ${message}`);
     }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Unhandled error: ${message}`);
-  }
 
-  if (hasExpectedError) {
-    assert.strictEqual(typeof actualResult !== "string", true, "Expected error result");
-    const expected = JSON.parse(fs.readFileSync(expectedErrorPath, "utf8")) as ScoringError;
-    assert.deepStrictEqual(actualResult, expected, "Error output mismatch");
+    if (hasExpectedError) {
+      assert.strictEqual(typeof actualResult !== "string", true, "Expected error result");
+      const expected = JSON.parse(fs.readFileSync(expectedErrorPath, "utf8")) as ScoringError;
+      assert.deepStrictEqual(actualResult, expected, "Error output mismatch");
+      assertExpectedStderr(expectedStderrPath, actualStderr);
+      const originalXml = fs.readFileSync(resultsInputPath, "utf8");
+      const actualXml = fs.readFileSync(tempResultsPath, "utf8");
+      assert.deepStrictEqual(normalizeXml(actualXml), normalizeXml(originalXml), "Results file changed on error");
+      return;
+    }
+
+    assert.strictEqual(typeof actualResult === "string", true, "Expected XML output");
+    const expectedXml = fs.readFileSync(expectedOutputPath, "utf8");
+    const normalizedActual = normalizeXml(actualResult as string);
+    const normalizedExpected = normalizeXml(expectedXml);
+    assert.deepStrictEqual(normalizedActual, normalizedExpected, "XML output mismatch");
     assertExpectedStderr(expectedStderrPath, actualStderr);
-    return;
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
   }
-
-  assert.strictEqual(typeof actualResult === "string", true, "Expected XML output");
-  const expectedXml = fs.readFileSync(expectedOutputPath, "utf8");
-  const normalizedActual = normalizeXml(actualResult as string);
-  const normalizedExpected = normalizeXml(expectedXml);
-  assert.deepStrictEqual(normalizedActual, normalizedExpected, "XML output mismatch");
-  assertExpectedStderr(expectedStderrPath, actualStderr);
 }
 
 function assertExpectedStderr(expectedStderrPath: string, actualStderr: string): void {

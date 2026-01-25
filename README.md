@@ -30,6 +30,8 @@ For local usage, you can run:
 npm run apply-results -- --results <results.xml> --assessment-test <assessment-test.qti.xml> --scoring <scoring.json> [--preserve-met]
 ```
 
+On success, the command overwrites the results XML file in place.
+
 ## Inputs
 
 ### `--results`
@@ -68,5 +70,6 @@ The CLI must accept the following arguments:
 
 The CLI must write to stdout:
 
-- On success: the updated results XML, exit code `0`.
-- On error: a JSON object matching the `expected-error.json` shape, exit code non-zero.
+- On success: nothing (the results file is updated in place), exit code `0`.
+- On error: a JSON object matching the `expected-error.json` shape, exit code non-zero,
+  and the results file remains unchanged.

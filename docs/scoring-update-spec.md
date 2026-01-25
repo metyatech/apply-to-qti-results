@@ -131,6 +131,12 @@ existing `RUBRIC_<index>_MET` value from `true` to `false`. In that mode:
 - Item-level and test-level `SCORE` values are calculated using the preserved
   rubric outcomes.
 
+## Output behavior
+- On success, the tool overwrites the input results XML file with the updated
+  results XML and writes nothing to stdout.
+- On error, the tool writes the error JSON to stdout and leaves the input
+  results XML file unchanged.
+
 ## Validation and errors
 The tool must validate:
 - Root element name and namespace of the results document.

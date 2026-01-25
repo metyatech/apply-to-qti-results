@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -46,9 +47,10 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   const stdout = (result.stdout || "").trim();
   const stderr = (result.stderr || "").replace(/\r\n/g, "\n").trimEnd();
   if (result.status === 0) {
+    const outputXml = fs.readFileSync(input.resultsPath, "utf8");
     return {
       ok: true,
-      outputXml: stdout,
+      outputXml,
       stderr,
     };
   }

@@ -65,7 +65,7 @@ export function runCli(argv: string[]): void {
         },
       },
     );
-    process.stdout.write(outputXml);
+    writeResultsInPlace(args.results, outputXml);
   } catch (error) {
     if (error instanceof ScoringFailure) {
       writeError(error.payload);
@@ -123,6 +123,21 @@ function fileExists(filePath: string | null): boolean {
 function writeError(payload: ScoringError): void {
   process.stdout.write(JSON.stringify(payload, null, 2));
   process.exit(2);
+}
+
+function writeResultsInPlace(targetPath: string, contents: string): void {
+  const directory = path.dirname(targetPath);
+  const baseName = path.basename(targetPath);
+  const tempPath = path.join(directory, `.tmp-${baseName}-${process.pid}-${Date.now()}`);
+
+  fs.writeFileSync(tempPath, contents, "utf8");
+  fs.copyFileSync(tempPath, targetPath);
+  try {
+    fs.unlinkSync(tempPath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`warning: failed to remove temp file ${tempPath}: ${message}\n`);
+  }
 }
 
 const __filename = fileURLToPath(import.meta.url);
