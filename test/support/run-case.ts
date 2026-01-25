@@ -10,7 +10,7 @@ const RESULTS_INPUT = "results.input.xml";
 const RESULTS_EXPECTED = "results.expected.xml";
 const EXPECTED_ERROR = "expected-error.json";
 const EXPECTED_STDERR = "expected-stderr.txt";
-const MAPPING_INPUT = "mapping.csv";
+const ASSESSMENT_TEST = "assessment-test.qti.xml";
 const SCORING_INPUT = "scoring.json";
 const OPTIONS_INPUT = "options.json";
 
@@ -20,7 +20,7 @@ export function runCase(caseName: string, caseDir: string): void {
   const expectedOutputPath = path.join(caseDir, RESULTS_EXPECTED);
   const expectedErrorPath = path.join(caseDir, EXPECTED_ERROR);
   const expectedStderrPath = path.join(caseDir, EXPECTED_STDERR);
-  const mappingPath = path.join(caseDir, MAPPING_INPUT);
+  const assessmentTestPath = path.join(caseDir, ASSESSMENT_TEST);
   const optionsPath = path.join(caseDir, OPTIONS_INPUT);
 
   if (!fs.existsSync(resultsInputPath)) {
@@ -37,14 +37,8 @@ export function runCase(caseName: string, caseDir: string): void {
     throw new Error("Expected exactly one of results.expected.xml or expected-error.json");
   }
 
-  const itemSources = fs
-    .readdirSync(caseDir)
-    .filter((name) => name.endsWith(".xml"))
-    .filter((name) => !name.startsWith("results."))
-    .map((name) => path.join(caseDir, name));
-
-  if (itemSources.length === 0) {
-    throw new Error("Missing item source XML files");
+  if (!fs.existsSync(assessmentTestPath)) {
+    throw new Error(`Missing ${ASSESSMENT_TEST}`);
   }
 
   let actualResult: string | ScoringError;
@@ -56,9 +50,8 @@ export function runCase(caseName: string, caseDir: string): void {
   try {
     const result = runImplementation({
       resultsPath: resultsInputPath,
-      itemPaths: itemSources,
+      assessmentTestPath,
       scoringPath,
-      mappingPath: fs.existsSync(mappingPath) ? mappingPath : undefined,
       options,
     });
     if (result.ok) {

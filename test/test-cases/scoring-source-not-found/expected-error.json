@@ -1,5 +1,5 @@
 {
   "path": "/assessmentResult/itemResult[@identifier='item-1']",
   "identifier": "item-1",
-  "reason": "scoring source not found"
+  "reason": "assessment test missing item identifier"
 }

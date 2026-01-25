@@ -3,20 +3,20 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { applyScoringUpdates } from "./apply-qti-results.ts";
+import { parseXml, type XmlObject } from "./xml.ts";
 import { ScoringFailure, type ScoringError } from "./types.ts";
 
 type CliArgs = {
   results: string | null;
-  items: string[];
+  assessmentTest: string | null;
   scoring: string | null;
   preserveMet: boolean;
-  mapping: string | null;
 };
 
 export function runCli(argv: string[]): void {
   const args = parseArgs(argv);
 
-  if (!args.results || !args.scoring || args.items.length === 0) {
+  if (!args.results || !args.scoring || !args.assessmentTest) {
     writeError({ path: "/", reason: "missing required arguments" });
     return;
   }
@@ -30,30 +30,31 @@ export function runCli(argv: string[]): void {
     writeError({ path: "/", reason: `missing scoring file: ${args.scoring}` });
     return;
   }
-  if (args.mapping && !fileExists(args.mapping)) {
-    writeError({ path: "/", reason: `missing mapping file: ${args.mapping}` });
+  if (!fileExists(args.assessmentTest)) {
+    writeError({ path: "/", reason: `missing assessment test file: ${args.assessmentTest}` });
     return;
-  }
-
-  for (const item of args.items) {
-    if (!fileExists(item)) {
-      writeError({ path: "/", reason: `missing item file: ${item}` });
-      return;
-    }
   }
 
   try {
     const resultsXml = fs.readFileSync(args.results, "utf8");
-    const itemSourceXmls = args.items.map((itemPath) => fs.readFileSync(itemPath, "utf8"));
     const scoringInput = JSON.parse(fs.readFileSync(args.scoring, "utf8")) as unknown;
-    const mappingCsv = args.mapping ? fs.readFileSync(args.mapping, "utf8") : undefined;
+    const assessmentTestXml = fs.readFileSync(args.assessmentTest, "utf8");
+    const testDir = path.dirname(args.assessmentTest);
+    const assessmentTest = parseAssessmentTest(assessmentTestXml);
+    const itemSourceXmls = assessmentTest.itemRefs.map((ref) => {
+      const itemPath = path.resolve(testDir, ref.href);
+      if (!fileExists(itemPath)) {
+        throw new ScoringFailure({ path: "/assessmentTest", reason: `missing item file: ${itemPath}` });
+      }
+      return fs.readFileSync(itemPath, "utf8");
+    });
 
     const outputXml = applyScoringUpdates(
       {
         resultsXml,
         itemSourceXmls,
         scoringInput,
-        mappingCsv,
+        itemOrder: assessmentTest.itemRefs.map((ref) => ref.identifier),
       },
       {
         preserveMet: args.preserveMet,
@@ -84,10 +85,9 @@ export function runCli(argv: string[]): void {
 function parseArgs(argv: string[]): CliArgs {
   const result: CliArgs = {
     results: null,
-    items: [],
+    assessmentTest: null,
     scoring: null,
     preserveMet: false,
-    mapping: null,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -97,21 +97,13 @@ function parseArgs(argv: string[]): CliArgs {
       i += 1;
       continue;
     }
-    if (arg === "--item") {
-      const value = argv[i + 1];
-      if (value) {
-        result.items.push(value);
-      }
+    if (arg === "--assessment-test") {
+      result.assessmentTest = argv[i + 1] ?? null;
       i += 1;
       continue;
     }
     if (arg === "--scoring") {
       result.scoring = argv[i + 1] ?? null;
-      i += 1;
-      continue;
-    }
-    if (arg === "--mapping") {
-      result.mapping = argv[i + 1] ?? null;
       i += 1;
       continue;
     }
@@ -137,4 +129,50 @@ const __filename = fileURLToPath(import.meta.url);
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
   runCli(process.argv.slice(2));
+}
+
+type AssessmentTestRef = {
+  identifier: string;
+  href: string;
+};
+
+function parseAssessmentTest(xml: string): { itemRefs: AssessmentTestRef[] } {
+  const doc = parseXml(xml);
+  const testRoot = doc["qti-assessment-test"] as XmlObject | undefined;
+  if (!testRoot) {
+    throw new ScoringFailure({ path: "/assessmentTest", reason: "root element must be qti-assessment-test" });
+  }
+
+  const itemRefs: AssessmentTestRef[] = [];
+  const testParts = ensureArray(testRoot["qti-test-part"]);
+  for (const part of testParts) {
+    const sections = ensureArray((part as XmlObject)?.["qti-assessment-section"]);
+    for (const section of sections) {
+      const refs = ensureArray((section as XmlObject)?.["qti-assessment-item-ref"]);
+      for (const ref of refs) {
+        const identifier = (ref as XmlObject)?.["@_identifier"];
+        const href = (ref as XmlObject)?.["@_href"];
+        if (typeof identifier !== "string" || identifier.length === 0) {
+          throw new ScoringFailure({ path: "/assessmentTest", reason: "item ref missing identifier" });
+        }
+        if (typeof href !== "string" || href.length === 0) {
+          throw new ScoringFailure({ path: "/assessmentTest", reason: "item ref missing href" });
+        }
+        itemRefs.push({ identifier, href });
+      }
+    }
+  }
+
+  if (itemRefs.length === 0) {
+    throw new ScoringFailure({ path: "/assessmentTest", reason: "assessment test has no item refs" });
+  }
+
+  return { itemRefs };
+}
+
+function ensureArray<T>(value: T | T[] | undefined | null): T[] {
+  if (value === undefined || value === null) {
+    return [];
+  }
+  return Array.isArray(value) ? value : [value];
 }

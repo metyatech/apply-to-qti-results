@@ -8,7 +8,7 @@ type ApplyInput = {
   resultsXml: string;
   itemSourceXmls: string[];
   scoringInput: unknown;
-  mappingCsv?: string;
+  itemOrder: string[];
 };
 
 type ApplyOptions = {
@@ -21,10 +21,6 @@ type PreserveMetDowngradeNotice = {
   rubricIndex: number;
 };
 
-type IdentifierMapping = {
-  resultToItem: Map<string, string>;
-  itemToResult: Map<string, string>;
-};
 
 type RubricCriterion = {
   points: string;
@@ -57,13 +53,7 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
   }
 
   const itemResults = ensureArray(assessmentResult.itemResult);
-  const itemResultById = new Map<string, XmlObject>();
-  for (const itemResult of itemResults) {
-    const identifier = (itemResult as XmlObject)?.["@_identifier"];
-    if (typeof identifier === "string" && identifier.length > 0) {
-      itemResultById.set(identifier, itemResult as XmlObject);
-    }
-  }
+  const itemResultByItemId = new Map<string, XmlObject>();
 
   const testResult = assessmentResult.testResult as XmlObject | undefined;
   if (!testResult) {
@@ -79,9 +69,21 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
     itemSourceById.set(parsed.identifier, parsed.root);
   }
 
-  const mapping = input.mappingCsv ? parseMappingCsv(input.mappingCsv) : null;
-  if (mapping) {
-    validateMapping(mapping, itemResultById, itemSourceById);
+  const itemOrder = normalizeItemOrder(input.itemOrder, itemSourceById);
+  const itemOrderSet = new Set(itemOrder);
+  const itemResultBySequenceIndex = mapItemResultsBySequenceIndex(itemResults, itemOrder.length);
+  for (const [sequenceIndex, itemResult] of itemResultBySequenceIndex.entries()) {
+    const itemId = itemOrder[sequenceIndex - 1];
+    if (itemResultByItemId.has(itemId)) {
+      failResultItem(itemId, "duplicate item result for sequenceIndex");
+    }
+    itemResultByItemId.set(itemId, itemResult);
+  }
+  for (let index = 0; index < itemOrder.length; index += 1) {
+    const itemId = itemOrder[index];
+    if (!itemResultByItemId.has(itemId)) {
+      failResultItem(`Q${index + 1}`, "itemResult missing for assessment test item");
+    }
   }
 
   const rubricCache = new Map<string, Rubric>();
@@ -89,13 +91,12 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
 
   for (const item of scoringItems) {
     const identifier = item.identifier;
-    const resultIdentifier = mapping ? mapping.itemToResult.get(identifier) : identifier;
-    if (mapping && !resultIdentifier) {
-      failMapping("mapping missing for item identifier", identifier);
+    if (!itemOrderSet.has(identifier)) {
+      failItem(identifier, "assessment test missing item identifier");
     }
-    const itemResult = itemResultById.get(resultIdentifier);
+    const itemResult = itemResultByItemId.get(identifier);
     if (!itemResult) {
-      failResultItem(resultIdentifier, "itemResult not found");
+      failItem(identifier, "itemResult not found");
     }
 
     const hasCriteria = item.criteria !== undefined;
@@ -355,71 +356,49 @@ function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {
   return result;
 }
 
-function parseMappingCsv(csv: string): IdentifierMapping {
-  const lines = csv
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  if (lines.length === 0) {
-    failMapping("mapping file is empty");
+function normalizeItemOrder(itemOrder: string[], itemSourceById: Map<string, XmlObject>): string[] {
+  if (!Array.isArray(itemOrder) || itemOrder.length === 0) {
+    failAssessmentTest("assessment test has no item refs");
   }
-
-  const header = lines[0];
-  if (header !== "resultItemIdentifier,itemIdentifier") {
-    failMapping("mapping header must be resultItemIdentifier,itemIdentifier");
+  const seen = new Set<string>();
+  for (const identifier of itemOrder) {
+    if (!identifier) {
+      failAssessmentTest("assessment test item identifier missing");
+    }
+    if (seen.has(identifier)) {
+      failAssessmentTest(`duplicate item identifier in assessment test: ${identifier}`);
+    }
+    if (!itemSourceById.has(identifier)) {
+      failAssessmentTest(`item identifier not found in item sources: ${identifier}`, identifier);
+    }
+    seen.add(identifier);
   }
-
-  const resultToItem = new Map<string, string>();
-  const itemToResult = new Map<string, string>();
-
-  for (let index = 1; index < lines.length; index += 1) {
-    const line = lines[index];
-    const parts = line.split(",");
-    if (parts.length !== 2) {
-      failMapping(`mapping row must have 2 columns at line ${index + 1}`);
-    }
-    const resultId = parts[0].trim();
-    const itemId = parts[1].trim();
-    if (!resultId || !itemId) {
-      failMapping(`mapping row missing identifier at line ${index + 1}`);
-    }
-    if (resultToItem.has(resultId)) {
-      failMapping(`duplicate resultItemIdentifier: ${resultId}`);
-    }
-    if (itemToResult.has(itemId)) {
-      failMapping(`duplicate itemIdentifier: ${itemId}`);
-    }
-    resultToItem.set(resultId, itemId);
-    itemToResult.set(itemId, resultId);
-  }
-
-  if (resultToItem.size === 0) {
-    failMapping("mapping file has no entries");
-  }
-
-  return { resultToItem, itemToResult };
+  return itemOrder;
 }
 
-function validateMapping(
-  mapping: IdentifierMapping,
-  itemResultById: Map<string, XmlObject>,
-  itemSourceById: Map<string, XmlObject>,
-): void {
-  for (const [resultId, itemId] of mapping.resultToItem.entries()) {
-    if (!itemResultById.has(resultId)) {
-      failMapping(`mapping refers to unknown result item identifier: ${resultId}`);
+function mapItemResultsBySequenceIndex(
+  itemResults: XmlObject[],
+  maxSequenceIndex: number,
+): Map<number, XmlObject> {
+  const map = new Map<number, XmlObject>();
+  for (const itemResult of itemResults) {
+    const raw = itemResult?.["@_sequenceIndex"];
+    if (raw === undefined || raw === null || raw === "") {
+      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "sequenceIndex is required");
     }
-    if (!itemSourceById.has(itemId)) {
-      failMapping(`mapped item identifier not found in item sources: ${itemId}`, itemId);
+    const sequenceIndex = Number(raw);
+    if (!Number.isInteger(sequenceIndex) || sequenceIndex < 1) {
+      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "sequenceIndex must be a positive integer");
     }
+    if (sequenceIndex > maxSequenceIndex) {
+      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "sequenceIndex exceeds assessment test item count");
+    }
+    if (map.has(sequenceIndex)) {
+      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "duplicate sequenceIndex in results");
+    }
+    map.set(sequenceIndex, itemResult);
   }
-
-  for (const resultId of itemResultById.keys()) {
-    if (!mapping.resultToItem.has(resultId)) {
-      failResultItem(resultId, `mapping missing for result item identifier`);
-    }
-  }
+  return map;
 }
 
 function ensureArray<T>(value: T | T[] | undefined | null): T[] {
@@ -500,6 +479,6 @@ function failResultItem(identifier: string, reason: string): never {
   fail(reason, `/assessmentResult/itemResult[@identifier='${identifier}']`, identifier);
 }
 
-function failMapping(reason: string, identifier?: string): never {
-  fail(reason, "/mapping", identifier);
+function failAssessmentTest(reason: string, identifier?: string): never {
+  fail(reason, "/assessmentTest", identifier);
 }

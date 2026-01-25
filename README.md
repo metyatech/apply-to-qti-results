@@ -27,7 +27,7 @@ forwards to the implementation in `src/cli.ts`.
 For local usage, you can run:
 
 ```sh
-npm run apply-results -- --results <results.xml> --item <item.xml> --scoring <scoring.json> [--preserve-met]
+npm run apply-results -- --results <results.xml> --assessment-test <assessment-test.qti.xml> --scoring <scoring.json> [--preserve-met]
 ```
 
 ## Inputs
@@ -37,12 +37,13 @@ QTI 3.0 Results Reporting XML with `assessmentResult` as the root element.
 This file is the target that will be updated. Example fixture:
 [`test/test-cases/basic/results.input.xml`](test/test-cases/basic/results.input.xml).
 
-### `--item`
-QTI 3.0 Item XML with `qti-assessment-item` as the root element. The item must
-contain a scorer rubric in `qti-rubric-block view="scorer"` with rubric lines
-formatted as `[<points>] <criterion>`. Example fixture:
-[`test/test-cases/basic/item-source.xml`](test/test-cases/basic/item-source.xml).
-You can pass multiple `--item` flags.
+### `--assessment-test`
+QTI 3.0 Assessment Test XML with `qti-assessment-test` as the root element.
+The test must reference item files via `qti-assessment-item-ref` entries with
+relative `href` values. Example fixture:
+[`test/test-cases/basic/assessment-test.qti.xml`](test/test-cases/basic/assessment-test.qti.xml).
+This file is expected to follow the assessment-test mapping format produced by
+`markdown-to-qti` (see `D:\\siw-workspace\\markdown-to-qti\\docs\\qti-mapping.md`).
 
 ### `--scoring`
 JSON input that matches [`docs/scoring-update-input.schema.json`](docs/scoring-update-input.schema.json).
@@ -58,24 +59,12 @@ downgraded to `false`. The item-level and test-level `SCORE` are calculated
 using the preserved rubric outcomes.
 If a downgrade is prevented, the CLI writes a warning to stderr.
 
-### `--mapping` (optional)
-CSV file that maps results identifiers to item identifiers. Use this when
-`itemResult/@identifier` values (for example `Q1`) do not match item source
-identifiers. Format:
-
-```
-resultItemIdentifier,itemIdentifier
-Q1,item-001
-Q2,item-002
-```
-
-When `--mapping` is provided, `scoring.json` must use item identifiers.
-
 The CLI must accept the following arguments:
 
 - `--results <path>`: results input XML.
-- `--item <path>`: item source XML (repeatable).
+- `--assessment-test <path>`: assessment test XML that references item files.
 - `--scoring <path>`: scoring input JSON.
+- `--preserve-met`: optional flag to prevent `true` → `false` rubric downgrades.
 
 The CLI must write to stdout:
 

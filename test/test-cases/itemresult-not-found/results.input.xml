@@ -6,7 +6,7 @@
       <value>0</value>
     </outcomeVariable>
   </testResult>
-  <itemResult identifier="item-1" sequenceIndex="1" datestamp="2026-01-24T00:10:00Z" sessionStatus="final">
+  <itemResult identifier="item-1" sequenceIndex="2" datestamp="2026-01-24T00:10:00Z" sessionStatus="final">
     <outcomeVariable identifier="SCORE" baseType="float">
       <value>0</value>
     </outcomeVariable>

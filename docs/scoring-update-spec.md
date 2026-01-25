@@ -10,8 +10,10 @@ other custom data as-is.
 
 ## Inputs
 - **Results document**: QTI 3.0 Results Reporting XML (`assessmentResult`).
-- **Scoring source**: QTI 3.0 item XML (`qti-assessment-item`) that contains the
-  scoring rubric.
+- **Assessment test**: QTI 3.0 assessment test XML (`qti-assessment-test`) that
+  references item files via `qti-assessment-item-ref`.
+- **Item sources**: QTI 3.0 item XML (`qti-assessment-item`) referenced by the
+  assessment test and containing scoring rubrics.
 - **Scoring updates**: JSON that conforms to
   [`scoring-update-input.schema.json`](scoring-update-input.schema.json).
 
@@ -39,41 +41,12 @@ standard built-in identifier in Results Reporting, so the tool uses its own
 identifier pattern for those outcomes.
 
 ## Matching rules
-- By default, each `itemResult/@identifier` must match the corresponding
-  `qti-assessment-item/@identifier` exactly (case-sensitive).
-- When a mapping definition is provided (see below), `itemResult` identifiers
-  may differ and are matched through the mapping file instead.
+- The tool uses the assessment test file to determine item order.
+- Each `itemResult/@sequenceIndex` must map to the corresponding item reference
+  in the assessment test (1-based order).
+- The scoring JSON `items[].identifier` must match the assessment item
+  identifiers listed in the assessment test.
 - If a match is not found, the update fails for that item with a clear error.
-
-## Linking results to items
-When results use `Q{n}` style identifiers and item sources use file-based
-identifiers, provide a mapping definition that declares how each results
-identifier maps to an item identifier.
-
-### Mapping definition (optional input)
-Provide a mapping CSV file (UTF-8, no BOM) with a single header row:
-
-```
-resultItemIdentifier,itemIdentifier
-```
-
-Each subsequent row defines one mapping entry with:
-
-- `resultItemIdentifier` (string): the `itemResult/@identifier` value (for example `Q1`).
-- `itemIdentifier` (string): the assessment item `identifier`.
-
-Constraints:
-
-- One-to-one mapping (no duplicates on either side).
-- All `itemResult/@identifier` values in the results document must be mapped.
-- All mapped `itemIdentifier` values must exist in the item source set.
-
-Notes:
-
-- Row order does not matter.
-- Both values are treated as case-sensitive identifiers.
-- When the mapping file is provided, the scoring JSON `items[].identifier` must
-  refer to the item identifiers (not the result identifiers).
 
 ## Scoring rubric extraction
 The scoring rubric is read from `qti-rubric-block` with `view="scorer"` inside
@@ -161,8 +134,9 @@ existing `RUBRIC_<index>_MET` value from `true` to `false`. In that mode:
 ## Validation and errors
 The tool must validate:
 - Root element name and namespace of the results document.
-- Presence of `itemResult/@identifier` for every targeted item.
-- Scoring source contains a matching `qti-assessment-item`.
+- Assessment test contains item references.
+- `itemResult/@sequenceIndex` is present and maps to the assessment test order.
+- Item sources contain matching `qti-assessment-item` identifiers.
 - Rubric parsing succeeds and yields a maximum score.
 - Each `criteria` array length equals the rubric criteria count.
 - `criterionText` (when present) matches the rubric criterion text exactly.

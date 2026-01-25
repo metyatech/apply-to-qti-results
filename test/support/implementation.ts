@@ -6,9 +6,8 @@ import type { ScoringError } from "./types.ts";
 
 type RunInput = {
   resultsPath: string;
-  itemPaths: string[];
+  assessmentTestPath: string;
   scoringPath: string;
-  mappingPath?: string;
   options?: {
     preserveMet?: boolean;
   };
@@ -68,13 +67,8 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
 function buildArgs(baseArgs: string[], input: RunInput): string[] {
   const args = [...baseArgs];
   args.push("--results", input.resultsPath);
-  for (const itemPath of input.itemPaths) {
-    args.push("--item", itemPath);
-  }
+  args.push("--assessment-test", input.assessmentTestPath);
   args.push("--scoring", input.scoringPath);
-  if (input.mappingPath) {
-    args.push("--mapping", input.mappingPath);
-  }
   if (input.options?.preserveMet) {
     args.push("--preserve-met");
   }

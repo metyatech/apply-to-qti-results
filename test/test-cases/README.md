@@ -16,8 +16,6 @@ implementation test harness later.
 - `itemresult-not-found/` error when scoring references an item missing in results.
 - `scoring-source-not-found/` error when scoring references a missing item source.
 - `preserve-met/` success case that preserves existing `RUBRIC_<n>_MET=true`.
-- `mapping-basic/` success case with `mapping.csv`.
-- `mapping-missing-entry/` error when mapping omits a result identifier.
 - `comment-basic/` success case that writes an item comment.
 - `comment-not-string/` error when comment is not a string.
 - `comment-only/` success case that updates only the comment.
@@ -33,6 +31,7 @@ implementation test harness later.
 - Item source documents use the QTI 3.0 Item namespace
   `http://www.imsglobal.org/xsd/imsqti_v3p0`.
 - Rubric lines follow the format `[<points>] <criterion>`.
+- Each case includes `assessment-test.qti.xml` that references the item sources.
 - Expected error files are `expected-error.json` with the minimum fields:
   `path`, `identifier` (when applicable), and `reason`.
 
@@ -47,8 +46,6 @@ implementation test harness later.
 - [itemresult-not-found](itemresult-not-found)
 - [scoring-source-not-found](scoring-source-not-found)
 - [preserve-met](preserve-met)
-- [mapping-basic](mapping-basic)
-- [mapping-missing-entry](mapping-missing-entry)
 - [comment-basic](comment-basic)
 - [comment-not-string](comment-not-string)
 - [comment-only](comment-only)
