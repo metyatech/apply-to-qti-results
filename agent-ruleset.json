@@ -1,5 +1,10 @@
 {
-  "output": "AGENTS.md",
-  "domains": ["node"],
-  "rules": ["agent-rules-local/qti3-results-reporting.md"]
+  "source": "github:metyatech/agent-rules",
+  "domains": [
+    "node"
+  ],
+  "extra": [
+    "agent-rules-local/qti3-results-reporting.md"
+  ],
+  "output": "AGENTS.md"
 }
