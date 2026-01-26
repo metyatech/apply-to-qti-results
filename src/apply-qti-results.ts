@@ -87,8 +87,6 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
   }
 
   const rubricCache = new Map<string, Rubric>();
-  const processedScores: Array<{ scaled: number; scale: number }> = [];
-
   for (const item of scoringItems) {
     const identifier = item.identifier;
     if (!itemOrderSet.has(identifier)) {
@@ -192,7 +190,6 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
         "float",
         formatScaled(itemScoreScaled, rubric.scaleDigits),
       );
-      processedScores.push({ scaled: itemScoreScaled, scale: rubric.scaleDigits });
     }
 
     if (hasComment) {
@@ -200,13 +197,14 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
     }
   }
 
-  if (processedScores.length > 0) {
+  const allScores = collectItemScores(itemResultByItemId.values());
+  if (allScores.length > 0) {
     const testOutcomes = ensureArray(testResult.outcomeVariable) as XmlObject[];
     testResult.outcomeVariable = testOutcomes;
 
-    const testScale = Math.max(...processedScores.map((score) => score.scale));
+    const testScale = Math.max(...allScores.map((score) => score.scale));
     let testScoreScaled = 0;
-    for (const score of processedScores) {
+    for (const score of allScores) {
       const multiplier = 10 ** (testScale - score.scale);
       testScoreScaled += score.scaled * multiplier;
     }
@@ -329,6 +327,35 @@ function getTextContent(node: XmlNode): string {
     return String((node as XmlObject)["#text"]);
   }
   return "";
+}
+
+function collectItemScores(itemResults: Iterable<XmlObject>): Array<{ scaled: number; scale: number }> {
+  const scores: Array<{ scaled: number; scale: number }> = [];
+  for (const itemResult of itemResults) {
+    const outcomes = ensureArray(itemResult.outcomeVariable) as XmlObject[];
+    const outcome = outcomes.find((candidate) => candidate?.["@_identifier"] === "SCORE");
+    if (!outcome) {
+      continue;
+    }
+    const rawValue = getTextContent((outcome as XmlObject).value);
+    const parsed = parseScoreValue(rawValue);
+    if (parsed) {
+      scores.push(parsed);
+    }
+  }
+  return scores;
+}
+
+function parseScoreValue(rawValue: string): { scaled: number; scale: number } | null {
+  if (!rawValue) {
+    return null;
+  }
+  const numeric = Number(rawValue);
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+  const scale = decimalPlaces(rawValue);
+  return { scaled: toScaledInt(rawValue, scale), scale };
 }
 
 function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {

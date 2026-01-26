@@ -22,6 +22,7 @@
 - ユーザーから「ルールを更新して」と依頼された場合、特段の指示がない限り「適切なルールモジュールとルールセットを更新し、再生成する」ことを意味する。
 - ユーザーが「常にこうして下さい」など恒常運用の指示を明示した場合は、その指示自体をルールとして適切なモジュールに追記する。
 - ユーザーが「必ず」「つねに」などの強い必須指定を含む指示を出した場合は、その指示がグローバルかプロジェクト固有かを判断し、適切なモジュールに追記して再生成する。
+- When updating rules, infer the core intent; if it represents a global policy, record it in global rules rather than project-local rules.
 
 ## ルール修正時の注意点
 
@@ -87,8 +88,9 @@
 
 - JavaScript ではなく TypeScript を標準とする（`.ts`/`.tsx`）。
 - JavaScript は、ツール都合で必要な設定ファイル等に限定する。
-- 既存の言語/フレームワーク/依存関係の範囲で完結させる。新規依存追加は必要最小限にする。
+- 外部依存で汎用的な解決ができる場合は積極的に採用する。内製は外部依存が適切に見つからない場合のみに限定する。
 - 対象ツール/フレームワークに公式チュートリアルや推奨される標準手法がある場合は、それを第一優先で採用する（明確な理由がある場合を除く）。
+- Prefer existing internet-hosted tools/libraries for reusable functionality; if none exist, externalize the shared logic into a separate repository/module and reference it via remote dependency (never local filesystem paths).
 - 「既存に合わせる」よりも「理想的な状態（読みやすさ・保守性・一貫性・安全性）」を優先する。
 - ただし、目的と釣り合わない大改修や無関係な改善はしない。
 - 不明点や判断が分かれる点は、独断で進めず確認する。
@@ -173,6 +175,7 @@ Write final responses to the user in Japanese unless the user requests otherwise
 - Populate public package metadata (name, description, repository, issues, homepage, engines) for published artifacts.
 - Validate executable entrypoints and any required shebangs so published commands run after install.
 - Run dependency security checks appropriate to the ecosystem before release and address critical issues.
+- When creating or updating LICENSE files, set the copyright holder name to "metyatech".
 
 # 品質（テスト・検証・エラーハンドリング）
 
@@ -185,12 +188,12 @@ Write final responses to the user in Japanese unless the user requests otherwise
 - 変更に関連する最小範囲のビルド/テスト/静的解析を実行する。
 - 実行方法は各リポジトリが用意しているスクリプト/コマンドを優先する（例: `npm run build`, `npm test`）。
 - 静的解析（lint / 型チェック / 静的検証）は必須とし、対象リポジトリに未整備なら同一変更セット内で追加する（必須）。
-- 追加時はまず依存追加なしの最小構成を優先する（例: TypeScript は `tsc --noEmit`）。新規依存が必要な場合は候補と影響範囲を提示し、ユーザー確認後に追加する。
+- 追加時は既存の外部ツール/ライブラリを優先して採用する。新規依存を追加する場合は候補と影響範囲を提示し、ユーザーへ報告したうえで追加する。
 - 実行できない場合は、その理由と、ユーザーが実行するコマンドを明記する。
 
 ## テスト
 
-- 進め方: 原則として、実装や修正より先にテストを追加し、先に失敗を確認してから本実装を行う（test-first）。
+- 進め方: 実装や修正より先にテストを追加し、先に失敗を確認してから本実装を行う（test-first）を必ず守る。
 - 常に多様な入力パターンを想定したテストを作成する（必須）。
 - 最小のテストだけにせず、期待される挙動の全範囲（成功/失敗、境界値、無効入力、代表的な状態遷移）を網羅する。
 - 原則: 挙動が変わる変更（仕様追加/変更/バグ修正/リファクタ等）には、同一変更セット内で自動テスト（ユニット/統合/スナップショット等）を追加/更新する（必須）。
@@ -198,7 +201,7 @@ Write final responses to the user in Japanese unless the user requests otherwise
 - 出力ファイルの仕様を定義している場合、決定的な内容については全文一致のテスト（ゴールデン/スナップショット等）で検証する（必須）。
 - 網羅性: 変更箇所の分岐・状態遷移・入力パターンについて、結果が変わり得るすべてのパターンを自動テストで網羅する（必須）。少なくとも「成功/失敗」「境界値」「無効入力」「代表的な状態遷移（例: 直前状態の影響、切り替え、解除/復帰）」を含める。
 - 失敗系: 期待されるエラー/例外/不正入力の失敗ケースも必ずテストする（必須）。
-- テスト未整備: 対象リポジトリにテストが存在しない場合は、まず実用的に運用できるテスト基盤を同一変更セット内で追加し、変更範囲の全挙動を確認できる十分なテストを追加する。新規依存追加が必要な場合は、候補と影響範囲を提示してユーザーに確認してから進める。
+- テスト未整備: 対象リポジトリにテストが存在しない場合は、まず実用的に運用できるテスト基盤を同一変更セット内で追加し、変更範囲の全挙動を確認できる十分なテストを追加する。新規依存追加が必要な場合は、候補と影響範囲を提示してユーザーへ報告したうえで進める。
 - 例外: テスト追加や網羅が困難/不適切な場合は、理由と不足しているパターン（カバレッジギャップ）を明記し、代替検証（手動確認手順・実行コマンド等）を提示してユーザーの明示許可を得る（独断で省略しない）。
 - テストは決定的にする（時刻/乱数/外部I/O/グローバル状態への依存を最小化し、必要なら差し替え可能にする）。
 - Playwright のテストが動作しない場合は、`playwright/.cache` を削除してから再実行する（例: `npm run test-ct:clean`）。
@@ -210,7 +213,7 @@ Write final responses to the user in Japanese unless the user requests otherwise
 
 ## バグ修正（手順）
 
-バグ修正は原則として、次の順で行う:
+バグ修正は必ず、次の順で行う:
 
 1. バグを再現する自動テストを追加/更新し、テストが失敗することを確認する。
 2. バグ修正を行う。

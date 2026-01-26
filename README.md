@@ -68,6 +68,9 @@ Example fixture: [`test/test-cases/basic/scoring.json`](test/test-cases/basic/sc
 Scoring item entries can include `comment` to store a per-item comment in the
 results output. If `comment` is provided without `criteria`, only the comment
 is updated.
+The tool always recomputes the test-level `SCORE` using all item-level `SCORE`
+values present in the results after the update, including items that were not
+included in the scoring input.
 
 `--scoring` also accepts glob patterns when `--results` is a glob. The tool
 matches results and scoring files by **relative path without the extension**,

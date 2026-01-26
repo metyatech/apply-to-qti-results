@@ -148,7 +148,11 @@ comment output and does not modify rubric outcomes or scores.
 
 ### Test-level SCORE
 - `testResult/outcomeVariable identifier="SCORE"` is updated to the sum of all
-  item-level scores written by this tool.
+  item-level `SCORE` values present in the results after the update.
+- When scoring input only includes a subset of items, existing item-level
+  `SCORE` values for non-updated items are included in the total.
+- If no item-level `SCORE` values exist, the test-level `SCORE` is left
+  unchanged.
 
 ## Optional mode: preserve met outcomes
 When the tool is run with a "preserve met" mode enabled, it must not change an

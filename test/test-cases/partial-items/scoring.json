@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "Selects the only prime number"
+        },
+        {
+          "met": false,
+          "criterionText": "Avoids selecting a composite number"
+        }
+      ]
+    }
+  ]
+}
