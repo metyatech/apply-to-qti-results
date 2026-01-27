@@ -147,7 +147,9 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
           failItem(identifier, `criterion must be an object at index ${index + 1}`);
         }
 
-        if (typeof (criterion as XmlObject).met !== "boolean") {
+        const hasMet = Object.prototype.hasOwnProperty.call(criterion as XmlObject, "met");
+        const metValue = (criterion as XmlObject).met;
+        if (hasMet && typeof metValue !== "boolean") {
           failItem(identifier, `criterion met must be boolean at index ${index + 1}`);
         }
 
@@ -160,10 +162,10 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
           }
         }
 
-        const requestedMet = Boolean((criterion as XmlObject).met);
         const existingMet = existingRubricMet.get(index + 1);
+        const requestedMet = hasMet ? (metValue as boolean) : undefined;
         const preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
-        const finalMet = preserveDowngrade ? true : requestedMet;
+        const finalMet = hasMet ? (preserveDowngrade ? true : requestedMet) : existingMet;
 
         if (preserveDowngrade) {
           onPreserveMetDowngrade?.({
@@ -172,16 +174,18 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
           });
         }
 
-        if (finalMet) {
+        if (finalMet === true) {
           itemScoreScaled += toScaledInt(rubricCriterion.points, rubric.scaleDigits);
         }
 
-        upsertOutcomeVariable(
-          outcomes,
-          `RUBRIC_${index + 1}_MET`,
-          "boolean",
-          finalMet ? "true" : "false",
-        );
+        if (hasMet) {
+          upsertOutcomeVariable(
+            outcomes,
+            `RUBRIC_${index + 1}_MET`,
+            "boolean",
+            finalMet === true ? "true" : "false",
+          );
+        }
       }
 
       upsertOutcomeVariable(

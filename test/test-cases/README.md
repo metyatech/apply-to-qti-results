@@ -9,6 +9,7 @@ implementation test harness later.
 - `basic/` basic success case with one item and two criteria.
 - `multi-items/` success case with two items and test-level score sum.
 - `criteria-length-mismatch/` error when criteria count does not match rubric.
+- `criteria-missing-met/` success case that leaves criteria unchanged when met is omitted.
 - `criterion-text-mismatch/` error when `criterionText` does not match rubric.
 - `missing-rubric/` error when the item has no scorer rubric.
 - `invalid-results-namespace/` error when results namespace is unexpected.
@@ -47,6 +48,7 @@ implementation test harness later.
 - [basic](basic)
 - [multi-items](multi-items)
 - [criteria-length-mismatch](criteria-length-mismatch)
+- [criteria-missing-met](criteria-missing-met)
 - [criterion-text-mismatch](criterion-text-mismatch)
 - [missing-rubric](missing-rubric)
 - [invalid-results-namespace](invalid-results-namespace)
