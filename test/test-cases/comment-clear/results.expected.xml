@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentResult xmlns="http://www.imsglobal.org/xsd/imsqti_result_v3p0">
+  <context sourcedId="candidate-13"/>
+  <testResult identifier="test-13" datestamp="2026-01-24T02:00:00Z">
+    <outcomeVariable identifier="SCORE" baseType="float">
+      <value>4</value>
+    </outcomeVariable>
+  </testResult>
+  <itemResult identifier="item-1" sequenceIndex="1" datestamp="2026-01-24T02:00:00Z" sessionStatus="final">
+    <outcomeVariable identifier="SCORE" baseType="float">
+      <value>4</value>
+    </outcomeVariable>
+    <outcomeVariable identifier="RUBRIC_1_MET" baseType="boolean">
+      <value>true</value>
+    </outcomeVariable>
+  </itemResult>
+</assessmentResult>

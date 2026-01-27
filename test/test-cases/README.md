@@ -17,6 +17,7 @@ implementation test harness later.
 - `scoring-source-not-found/` error when scoring references a missing item source.
 - `preserve-met/` success case that preserves existing `RUBRIC_<n>_MET=true`.
 - `comment-basic/` success case that writes an item comment.
+- `comment-clear/` success case that clears an item comment.
 - `comment-not-string/` error when comment is not a string.
 - `comment-only/` success case that updates only the comment.
 - `comment-missing/` error when neither criteria nor comment is provided.
@@ -54,6 +55,7 @@ implementation test harness later.
 - [scoring-source-not-found](scoring-source-not-found)
 - [preserve-met](preserve-met)
 - [comment-basic](comment-basic)
+- [comment-clear](comment-clear)
 - [comment-not-string](comment-not-string)
 - [comment-only](comment-only)
 - [comment-missing](comment-missing)

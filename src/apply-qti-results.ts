@@ -105,8 +105,8 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
     }
 
     if (hasComment) {
-      if (typeof item.comment !== "string" || item.comment.length === 0) {
-        failItem(identifier, "comment must be a non-empty string");
+      if (typeof item.comment !== "string") {
+        failItem(identifier, "comment must be a string");
       }
     }
 
@@ -193,7 +193,12 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
     }
 
     if (hasComment) {
-      upsertOutcomeVariable(outcomes, "COMMENT", "string", item.comment as string);
+      const commentValue = item.comment as string;
+      if (commentValue.length === 0) {
+        removeOutcomeVariable(outcomes, "COMMENT");
+      } else {
+        upsertOutcomeVariable(outcomes, "COMMENT", "string", commentValue);
+      }
     }
   }
 
@@ -485,6 +490,13 @@ function upsertOutcomeVariable(
     "@_baseType": baseType,
     value,
   });
+}
+
+function removeOutcomeVariable(outcomes: XmlObject[], identifier: string): void {
+  const index = outcomes.findIndex((outcome) => outcome?.["@_identifier"] === identifier);
+  if (index >= 0) {
+    outcomes.splice(index, 1);
+  }
 }
 
 function fail(reason: string, pathValue = "/", identifier?: string): never {
