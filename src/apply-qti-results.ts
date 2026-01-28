@@ -154,11 +154,17 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
         }
 
         if ("criterionText" in (criterion as XmlObject) && (criterion as XmlObject).criterionText !== undefined) {
-          if (typeof (criterion as XmlObject).criterionText !== "string") {
+          const criterionText = (criterion as XmlObject).criterionText;
+          if (typeof criterionText !== "string") {
             failItem(identifier, `criterionText must be string at index ${index + 1}`);
           }
-          if ((criterion as XmlObject).criterionText !== rubricCriterion.text) {
-            failItem(identifier, `criterionText does not match rubric criterion at index ${index + 1}`);
+          if (criterionText !== rubricCriterion.text) {
+            const expectedText = JSON.stringify(rubricCriterion.text);
+            const actualText = JSON.stringify(criterionText);
+            failItem(
+              identifier,
+              `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText})`,
+            );
           }
         }
 
