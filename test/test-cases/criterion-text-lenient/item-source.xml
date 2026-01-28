@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qti-assessment-item
+    xmlns="http://www.imsglobal.org/xsd/imsqti_v3p0"
+    identifier="item-1"
+    title="Layout Basics"
+    adaptive="false"
+    time-dependent="false">
+  <qti-item-body>
+    <qti-rubric-block view="scorer">
+      <qti-p>[2] <qti-code>&lt;header&gt;</qti-code> 要素がページ上部のヘッダー部分として適切に使用されている</qti-p>
+      <qti-p>[1.5] <qti-code>display: flex</qti-code> が設定され、子要素が横並びまたは縦並びになっている</qti-p>
+    </qti-rubric-block>
+  </qti-item-body>
+</qti-assessment-item>

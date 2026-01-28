@@ -158,12 +158,16 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
           if (typeof criterionText !== "string") {
             failItem(identifier, `criterionText must be string at index ${index + 1}`);
           }
-          if (criterionText !== rubricCriterion.text) {
+          const expectedNormalized = normalizeCriterionText(rubricCriterion.text);
+          const actualNormalized = normalizeCriterionText(criterionText);
+          if (expectedNormalized !== actualNormalized) {
             const expectedText = JSON.stringify(rubricCriterion.text);
             const actualText = JSON.stringify(criterionText);
+            const normalizedExpected = JSON.stringify(expectedNormalized);
+            const normalizedActual = JSON.stringify(actualNormalized);
             failItem(
               identifier,
-              `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText})`,
+              `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText}, normalized expected: ${normalizedExpected}, normalized got: ${normalizedActual})`,
             );
           }
         }
@@ -479,6 +483,15 @@ function formatScaled(value: number, scaleDigits: number): string {
   const raw = `${whole}.${frac}`;
   const trimmed = raw.replace(/\.?0+$/, "");
   return `${sign}${trimmed}`;
+}
+
+function normalizeCriterionText(text: string): string {
+  return text
+    .replace(/`[^`]*`/g, "")
+    .replace(/<[^>]*>/g, "")
+    .replace(/[\p{P}\p{S}]/gu, "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
 }
 
 function upsertOutcomeVariable(

@@ -1,5 +1,5 @@
 {
   "path": "/assessmentResult/itemResult[@identifier='item-1']",
   "identifier": "item-1",
-  "reason": "criterionText does not match rubric criterion at index 2 (expected: \"Mentions conversion of light energy to chemical energy\", got: \"Mentions conversion of light energy to chemical storage\")"
+  "reason": "criterionText does not match rubric criterion at index 2 (expected: \"Mentions conversion of light energy to chemical energy\", got: \"Mentions conversion of light energy to chemical storage\", normalized expected: \"mentionsconversionoflightenergytochemicalenergy\", normalized got: \"mentionsconversionoflightenergytochemicalstorage\")"
 }

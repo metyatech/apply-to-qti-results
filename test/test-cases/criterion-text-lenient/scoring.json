@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "`<header>` 要素がページ上部のヘッダー部分として適切に使用されている"
+        },
+        {
+          "met": false,
+          "criterionText": "`display: flex` が設定され、子要素が横並びまたは縦並びになっている"
+        }
+      ]
+    }
+  ]
+}

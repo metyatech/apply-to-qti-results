@@ -107,8 +107,14 @@ At least one of `criteria` or `comment` must be provided.
 
 Each criterion entry contains:
 - `met` (boolean): whether the criterion is satisfied.
-- `criterionText` (optional string): if provided, must match the rubric
-  criterion text exactly (the `<criterion>` part, without the `[<points>]`).
+- `criterionText` (optional string): if provided, it is compared to the rubric
+  criterion text (the `<criterion>` part, without the `[<points>]`) using a
+  normalized match that ignores:
+  - inline code spans wrapped in backticks
+  - inline tag-like spans such as `<header>`
+  - punctuation and symbols
+  - whitespace
+  - ASCII case differences
 
 The rubric itself has no IDs in the current authoring format, so the default
 identifier is the order index (1-based).
