@@ -169,3 +169,49 @@ Source: C:/Users/Origin/.agentsmd/cache/metyatech/agent-rules/74947807374f378cfa
 
 - Use npm pack --dry-run to inspect the package contents.
 - Run npm test when tests exist.
+
+Source: D:/ghws/agent-rules-local/ghws-workspace.md
+
+# GHWS workspace repository management
+
+- These rules apply only when working inside the `ghws` workspace repository (the exact path may vary).
+- All folders in this workspace (except `agent-rules-local`) are Git repositories connected to GitHub.
+- Some repositories are not owned by the user, but the user can commit and push to them.
+- If the target repository already exists under the current `ghws` workspace, edit it in place.
+- If the target repository is not present under the current `ghws` workspace, clone it from GitHub with `--recursive` and then work in the cloned folder.
+- When adding a new repository, create it under the `ghws` workspace first and then push it to GitHub.
+- Never clone repositories that are not managed by the user into the `ghws` workspace.
+
+Source: D:/ghws/apply-to-qti-results/agent-rules-local/qti3-results-reporting.md
+
+# QTI 3.0 Results Reporting ルール
+
+## 目的
+- QTI 3.0 Results Reporting の内容を適切に書き換えるためのツール開発に特化した運用ルール。
+- 仕様準拠・互換性・検証容易性を最優先とする。
+
+## スコープ
+- QTI 3.0 Results Reporting 仕様に基づく入力・出力変換、検証、整形、差分生成を対象。
+- 仕様外の独自拡張は明示し、デフォルトは無効。
+
+## 仕様準拠
+- 仕様用語は原文に合わせ、勝手な言い換えを避ける。
+- 結果書き換え時は、識別子・スコア・メタデータの整合性を保持する。
+- 変更が影響する範囲を明記し、暗黙の破壊的変更をしない。
+
+## データ取り扱い
+- 入力は不正・欠損・余剰フィールドを含む前提で堅牢に処理する。
+- 正規化・マッピング・フィルタの手順を明文化し、再現可能にする。
+- 変換前後の監査ログ（差分や要約）を残す設計を推奨。
+
+## バリデーション
+- 仕様に対するスキーマ検証を優先し、検証エラーは具体的なパスと理由を返す。
+- 許容する例外ケースはルール化し、テストで固定化する。
+
+## テスト指針
+- 正常系・境界値・破損データを含むテストを用意する。
+- 変換結果はスナップショットや差分比較で検証する。
+
+## ドキュメント
+- 変換ルールは入出力例とともに記載する。
+- 仕様の参照箇所（節や用語）を明記する。

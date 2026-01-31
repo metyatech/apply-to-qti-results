@@ -3,5 +3,9 @@
   "domains": [
     "node"
   ],
+  "extra": [
+    "../agent-rules-local/ghws-workspace.md",
+    "agent-rules-local/qti3-results-reporting.md"
+  ],
   "output": "AGENTS.md"
 }
