@@ -1,8 +1,7 @@
 {
   "source": "github:metyatech/agent-rules",
   "domains": [
-    "node",
-    "ghws"
+    "node"
   ],
   "extra": [
     "agent-rules-local/qti3-results-reporting.md"

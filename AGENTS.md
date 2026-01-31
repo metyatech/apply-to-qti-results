@@ -171,19 +171,6 @@ Source: C:/Users/Origin/.agentsmd/cache/metyatech/agent-rules/5428d4dac46aecff41
 - Use npm pack --dry-run to inspect the package contents.
 - Run npm test when tests exist.
 
-Source: C:/Users/Origin/.agentsmd/cache/metyatech/agent-rules/5428d4dac46aecff41d766e5e611e92cfa1b1212/rules/domains/ghws/ghws-workspace.md
-
-# GHWS workspace repository management
-
-- Apply these rules only when the repository path is under the ghws workspace root; ignore this module for standalone clones outside ghws.
-- These rules apply only when working inside the `ghws` workspace repository (the exact path may vary).
-- All folders in this workspace (except `agent-rules-local`) are Git repositories connected to GitHub.
-- Some repositories are not owned by the user, but the user can commit and push to them.
-- If the target repository already exists under the current `ghws` workspace, edit it in place.
-- If the target repository is not present under the current `ghws` workspace, clone it from GitHub with `--recursive` and then work in the cloned folder.
-- When adding a new repository, create it under the `ghws` workspace first and then push it to GitHub.
-- Never clone repositories that are not managed by the user into the `ghws` workspace.
-
 Source: D:/ghws/apply-to-qti-results/agent-rules-local/qti3-results-reporting.md
 
 # QTI 3.0 Results Reporting ルール
