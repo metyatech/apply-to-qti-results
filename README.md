@@ -59,7 +59,7 @@ The test must reference item files via `qti-assessment-item-ref` entries with
 relative `href` values. Example fixture:
 [`test/test-cases/basic/assessment-test.qti.xml`](test/test-cases/basic/assessment-test.qti.xml).
 This file is expected to follow the assessment-test mapping format produced by
-`markdown-to-qti` (see `D:\\siw-workspace\\markdown-to-qti\\docs\\qti-mapping.md`).
+`markdown-to-qti` (see `markdown-to-qti/docs/qti-mapping.md`).
 
 ### `--scoring`
 JSON input that matches [`docs/scoring-update-input.schema.json`](docs/scoring-update-input.schema.json).
@@ -119,3 +119,22 @@ The CLI must write to stdout:
 - On success: nothing (the results file is updated in place), exit code `0`.
 - On error: a JSON object matching the `expected-error.json` shape, exit code non-zero,
   and the results file remains unchanged.
+
+## Overview
+This repository contains the apply-to-qti-results project.
+
+## Setup
+- Install dependencies: `npm install`.
+
+## Development Commands
+- Build: `Not configured (no build script in package.json).`
+- Test: `npm run test`
+- Lint: `Not configured (no lint script in package.json).`
+
+## Requirements and Configuration
+- No required environment variables are documented.
+
+## Release and Deploy
+Not documented for this repository.
+
+
