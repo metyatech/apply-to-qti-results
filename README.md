@@ -4,13 +4,16 @@ Tooling for updating QTI 3.0 Results Reporting documents using scoring rubrics
 from QTI 3.0 item sources.
 
 ## Documents
+
 - Scoring update specification: [docs/scoring-update-spec.md](docs/scoring-update-spec.md)
 - Scoring input schema: [docs/scoring-update-input.schema.json](docs/scoring-update-input.schema.json)
 
 ## Test cases
+
 Data-only fixtures live under [test/test-cases](test/test-cases).
 
 ## Tests
+
 Run the data-only test runner:
 
 ```sh
@@ -41,6 +44,7 @@ npm run apply-results -- --results "results/assessmentResult-*.xml" --assessment
 ## Inputs
 
 ### `--results`
+
 QTI 3.0 Results Reporting XML with `assessmentResult` as the root element.
 This file is the target that will be updated. Example fixture:
 [`test/test-cases/basic/results.input.xml`](test/test-cases/basic/results.input.xml).
@@ -54,6 +58,7 @@ applied to the results relative path from the glob root. Example:
 [`test/test-cases/glob-regex-basic`](test/test-cases/glob-regex-basic).
 
 ### `--assessment-test`
+
 QTI 3.0 Assessment Test XML with `qti-assessment-test` as the root element.
 The test must reference item files via `qti-assessment-item-ref` entries with
 relative `href` values. Example fixture:
@@ -62,6 +67,7 @@ This file is expected to follow the assessment-test mapping format produced by
 `markdown-to-qti` (see `markdown-to-qti/docs/qti-mapping.md`).
 
 ### `--scoring`
+
 JSON input that matches [`docs/scoring-update-input.schema.json`](docs/scoring-update-input.schema.json).
 Example fixture: [`test/test-cases/basic/scoring.json`](test/test-cases/basic/scoring.json).
 
@@ -82,6 +88,7 @@ When regex mapping is enabled, `--scoring` defines the scoring root directory
 and `--scoring-template` resolves scoring paths relative to that root.
 
 ### `--results-regex` (optional)
+
 Regular expression applied to each results relative path (from the results glob
 root, using forward slashes). The regex must match the entire relative path and
 is case-insensitive. This option requires `--scoring-template`.
@@ -91,6 +98,7 @@ scoring template. Example:
 [`test/test-cases/glob-regex-basic`](test/test-cases/glob-regex-basic).
 
 ### `--scoring-template` (optional)
+
 Template used to resolve scoring paths when `--results-regex` is provided. The
 template is resolved relative to the scoring glob root. Supported tokens:
 This option requires `--results-regex`.
@@ -100,6 +108,7 @@ This option requires `--results-regex`.
 - `{name}` (named capture groups)
 
 ### `--preserve-met` (optional)
+
 When enabled, existing `RUBRIC_<n>_MET=true` values in the results XML are never
 downgraded to `false`. The item-level and test-level `SCORE` are calculated
 using the preserved rubric outcomes.
@@ -121,20 +130,31 @@ The CLI must write to stdout:
   and the results file remains unchanged.
 
 ## Overview
+
 This repository contains the apply-to-qti-results project.
 
 ## Setup
+
 - Install dependencies: `npm install`.
 
 ## Development Commands
-- Build: `Not configured (no build script in package.json).`
-- Test: `npm run test`
-- Lint: `Not configured (no lint script in package.json).`
+
+- Build: `npm run build`
+
+- Test: `npm test`
+
+- Lint: `npm run lint`
+
+- Format: `npm run format`
+
+- Typecheck: `npm run typecheck`
+
+
 
 ## Requirements and Configuration
+
 - No required environment variables are documented.
 
 ## Release and Deploy
+
 Not documented for this repository.
-
-
