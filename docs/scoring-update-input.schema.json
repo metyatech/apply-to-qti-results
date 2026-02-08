@@ -40,10 +40,7 @@
             "minLength": 1
           }
         },
-        "anyOf": [
-          { "required": ["criteria"] },
-          { "required": ["comment"] }
-        ]
+        "anyOf": [{ "required": ["criteria"] }, { "required": ["comment"] }]
       }
     }
   }

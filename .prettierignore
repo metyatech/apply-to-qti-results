@@ -1,0 +1,4 @@
+node_modules
+dist
+AGENTS.md
+package-lock.json

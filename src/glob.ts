@@ -1,5 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
 export type GlobExpansion = {
   pattern: string;
@@ -14,7 +14,10 @@ export function hasGlobPattern(value: string): boolean {
   return GLOB_REGEX.test(value);
 }
 
-export function expandPathOrGlob(pattern: string, cwd = process.cwd()): GlobExpansion {
+export function expandPathOrGlob(
+  pattern: string,
+  cwd = process.cwd(),
+): GlobExpansion {
   if (!hasGlobPattern(pattern)) {
     const resolved = path.resolve(cwd, pattern);
     return {
@@ -44,7 +47,7 @@ type ParsedGlob = {
 function parseGlob(pattern: string, cwd: string): ParsedGlob {
   const normalized = normalizePattern(pattern);
   const isAbsolute = path.isAbsolute(pattern);
-  let rootPrefix = "";
+  let rootPrefix = '';
   let remainder = normalized;
 
   if (isAbsolute) {
@@ -53,8 +56,10 @@ function parseGlob(pattern: string, cwd: string): ParsedGlob {
     remainder = normalized.slice(rootPrefix.length);
   }
 
-  const segments = remainder.split("/").filter(Boolean);
-  const wildcardIndex = segments.findIndex((segment) => hasGlobPattern(segment));
+  const segments = remainder.split('/').filter(Boolean);
+  const wildcardIndex = segments.findIndex((segment) =>
+    hasGlobPattern(segment),
+  );
   if (wildcardIndex === -1) {
     return {
       rootDir: path.resolve(isAbsolute ? rootPrefix : cwd, ...segments),
@@ -70,7 +75,9 @@ function parseGlob(pattern: string, cwd: string): ParsedGlob {
 
 function expandGlobSegments(rootDir: string, segments: string[]): string[] {
   if (segments.length === 0) {
-    return fs.existsSync(rootDir) && fs.statSync(rootDir).isFile() ? [rootDir] : [];
+    return fs.existsSync(rootDir) && fs.statSync(rootDir).isFile()
+      ? [rootDir]
+      : [];
   }
 
   const matches: string[] = [];
@@ -78,7 +85,12 @@ function expandGlobSegments(rootDir: string, segments: string[]): string[] {
   return matches;
 }
 
-function walkSegments(currentDir: string, segments: string[], index: number, matches: string[]): void {
+function walkSegments(
+  currentDir: string,
+  segments: string[],
+  index: number,
+  matches: string[],
+): void {
   if (index >= segments.length) {
     if (fs.existsSync(currentDir) && fs.statSync(currentDir).isFile()) {
       matches.push(currentDir);
@@ -87,12 +99,17 @@ function walkSegments(currentDir: string, segments: string[], index: number, mat
   }
 
   const segment = segments[index];
-  if (segment === "**") {
+  if (segment === '**') {
     walkSegments(currentDir, segments, index + 1, matches);
     const entries = safeReadDir(currentDir);
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        walkSegments(path.join(currentDir, entry.name), segments, index, matches);
+        walkSegments(
+          path.join(currentDir, entry.name),
+          segments,
+          index,
+          matches,
+        );
       }
     }
     return;
@@ -120,8 +137,8 @@ function matchSegment(pattern: string, name: string): boolean {
   if (!hasGlobPattern(pattern)) {
     return pattern === name;
   }
-  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-  const regexPattern = `^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`;
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const regexPattern = `^${escaped.replace(/\*/g, '.*').replace(/\?/g, '.')}$`;
   const regex = new RegExp(regexPattern);
   return regex.test(name);
 }
@@ -139,5 +156,5 @@ function normalizePattern(pattern: string): string {
 }
 
 function normalizeSeparators(value: string): string {
-  return value.replace(/\\/g, "/");
+  return value.replace(/\\/g, '/');
 }

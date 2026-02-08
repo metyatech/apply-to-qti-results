@@ -4,12 +4,24 @@
   "type": "module",
   "scripts": {
     "apply-results": "tsx src/cli.ts",
-    "test": "tsx test/run-test-cases.ts"
+    "test": "tsx test/run-test-cases.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm test"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "fast-xml-parser": "^5.3.4",
+    "prettier": "^3.8.1",
     "tsx": "^4.7.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.54.0"
   }
 }
