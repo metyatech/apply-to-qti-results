@@ -1,13 +1,13 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { runCase } from "./support/run-case.ts";
+import { runCase } from './support/run-case.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const casesRoot = path.resolve(__dirname, "test-cases");
+const casesRoot = path.resolve(__dirname, 'test-cases');
 
 if (!fs.existsSync(casesRoot)) {
   console.error(`Missing test cases directory: ${casesRoot}`);
@@ -21,7 +21,7 @@ const entries = fs
   .sort();
 
 if (entries.length === 0) {
-  console.error("No test cases found.");
+  console.error('No test cases found.');
   process.exit(1);
 }
 
