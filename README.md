@@ -149,6 +149,8 @@ This repository contains the apply-to-qti-results project.
 
 - Typecheck: `npm run typecheck`
 
+- Verify: `npm run verify`
+
 
 
 ## Requirements and Configuration
