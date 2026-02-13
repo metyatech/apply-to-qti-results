@@ -5,6 +5,13 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "bin": {
     "apply-to-qti-results": "dist/cli.js"
   },
@@ -16,6 +23,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "test": "tsx test/run-test-cases.ts",
     "apply-results": "tsx src/cli.ts",
     "prepare": "npm run build"
@@ -40,7 +48,6 @@
     "@types/node": "^20.11.30",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "fast-xml-parser": "^4.3.4",
     "prettier": "^3.2.5",
     "tsx": "^4.7.1",
     "typescript": "^5.4.5",

@@ -2,12 +2,18 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { applyScoringUpdates } from "../src/index.js";
 import { runCase } from "./support/run-case.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const casesRoot = path.resolve(__dirname, "test-cases");
+
+if (typeof applyScoringUpdates !== "function") {
+  console.error("Expected applyScoringUpdates export to be a function.");
+  process.exit(1);
+}
 
 if (!fs.existsSync(casesRoot)) {
   console.error(`Missing test cases directory: ${casesRoot}`);
