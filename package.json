@@ -26,7 +26,7 @@
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "test": "tsx test/run-test-cases.ts",
     "apply-results": "tsx src/cli.ts",
-    "prepare": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",

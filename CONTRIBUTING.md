@@ -6,8 +6,9 @@ Thank you for your interest in contributing!
 
 1.  Clone the repository.
 2.  Install dependencies: `npm install`.
-3.  Ensure tests pass: `npm test`.
-4.  Ensure linting passes: `npm run lint`.
+3.  Build the project: `npm run build`.
+4.  Ensure tests pass: `npm test`.
+5.  Ensure linting passes: `npm run lint`.
 
 ## Pull Requests
 
