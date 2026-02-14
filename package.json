@@ -2,7 +2,7 @@
   "name": "apply-to-qti-results",
   "version": "0.1.0",
   "description": "Tooling for updating QTI 3.0 Results Reporting documents using scoring rubrics from QTI 3.0 item sources",
-  "private": true,
+  "private": false,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

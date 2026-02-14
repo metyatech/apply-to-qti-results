@@ -151,8 +151,6 @@ This repository contains the apply-to-qti-results project.
 
 - Verify: `npm run verify`
 
-
-
 ## Requirements and Configuration
 
 - No required environment variables are documented.
