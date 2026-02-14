@@ -151,6 +151,17 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/linting-formatting-and-st
 - Do not disable rules globally; keep suppressions narrow, justified, and time-bounded.
 - Pin tool versions (lockfiles/manifests) for reproducible CI.
 
+## Design and visual accessibility automation
+
+- For any design/UI styling change in any project, enforce automated visual accessibility checks as part of the repo-standard `verify` command and CI.
+- Do not rely on per-page/manual test maintenance; use route discovery (for example sitemap, generated route lists, or framework route manifests) so newly added pages are automatically included.
+- Validate both light and dark themes when theme switching is supported.
+- Validate at least default, hover, and focus states for interactive elements.
+- Enforce non-text boundary contrast checks across all visible UI elements that present boundaries (including interactive controls and container-like elements), not only predefined component classes.
+- Do not hardcode a narrow selector allowlist for boundary checks; use broad DOM discovery with only minimal technical exclusions (for example hidden/zero-size/non-rendered nodes).
+- Fail CI on violations; do not silently ignore design regressions.
+- If temporary exclusions are unavoidable, keep them narrowly scoped, documented with rationale, and remove them promptly.
+
 ## Security baseline
 
 - Require dependency vulnerability scanning appropriate to the ecosystem (SCA) for merges. If you cannot enable it, report the limitation and get explicit user approval before proceeding without it.
