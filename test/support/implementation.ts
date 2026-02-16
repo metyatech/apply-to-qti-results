@@ -3,8 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { ScoringError } from "./types.ts";
-import { hasGlobPattern } from "../../src/glob.ts";
+import type { ScoringError } from "./types.js";
+import { hasGlobPattern } from "../../src/glob.js";
 
 type RunInput = {
   resultsPath: string;
@@ -32,8 +32,19 @@ type RunFailure = {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const COMMAND = process.execPath;
-const TSX_CLI = path.resolve(__dirname, "..", "..", "node_modules", "tsx", "dist", "cli.mjs");
-const ARGS = [TSX_CLI, path.resolve(__dirname, "..", "stub", "apply-qti-results.ts")];
+const TSX_CLI = path.resolve(
+  __dirname,
+  "..",
+  "..",
+  "node_modules",
+  "tsx",
+  "dist",
+  "cli.mjs",
+);
+const ARGS = [
+  TSX_CLI,
+  path.resolve(__dirname, "..", "stub", "apply-qti-results.ts"),
+];
 
 export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   const args = buildArgs(ARGS, input);
@@ -50,7 +61,9 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   const stdout = (result.stdout || "").trim();
   const stderr = (result.stderr || "").replace(/\r\n/g, "\n").trimEnd();
   if (result.status === 0) {
-    const outputXml = hasGlobPattern(input.resultsPath) ? "" : fs.readFileSync(input.resultsPath, "utf8");
+    const outputXml = hasGlobPattern(input.resultsPath)
+      ? ""
+      : fs.readFileSync(input.resultsPath, "utf8");
     return {
       ok: true,
       outputXml,
@@ -59,7 +72,9 @@ export function runImplementation(input: RunInput): RunSuccess | RunFailure {
   }
 
   if (!stdout) {
-    throw new Error("Implementation returned non-zero status with empty output");
+    throw new Error(
+      "Implementation returned non-zero status with empty output",
+    );
   }
 
   return {

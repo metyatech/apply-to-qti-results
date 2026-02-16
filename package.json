@@ -1,15 +1,59 @@
 {
   "name": "apply-to-qti-results",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Tooling for updating QTI 3.0 Results Reporting documents using scoring rubrics from QTI 3.0 item sources",
+  "private": false,
   "type": "module",
-  "scripts": {
-    "apply-results": "tsx src/cli.ts",
-    "test": "tsx test/run-test-cases.ts"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
+  "bin": {
+    "apply-to-qti-results": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "test": "tsx test/run-test-cases.ts",
+    "apply-results": "tsx src/cli.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/metyatech/apply-to-qti-results.git"
+  },
+  "keywords": [
+    "qti",
+    "qti3",
+    "assessment",
+    "results"
+  ],
+  "author": "metyatech",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/metyatech/apply-to-qti-results/issues"
+  },
+  "homepage": "https://github.com/metyatech/apply-to-qti-results#readme",
   "devDependencies": {
     "@types/node": "^20.11.30",
-    "fast-xml-parser": "^5.3.4",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
     "tsx": "^4.7.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.8.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.4"
   }
 }

@@ -3,9 +3,9 @@ import path from "node:path";
 import assert from "node:assert";
 import os from "node:os";
 
-import { runImplementation } from "./implementation.ts";
-import type { ScoringError } from "./types.ts";
-import { normalizeXml } from "./xml.ts";
+import { runImplementation } from "./implementation.js";
+import type { ScoringError } from "./types.js";
+import { normalizeXml } from "./xml.js";
 
 const RESULTS_INPUT = "results.input.xml";
 const RESULTS_EXPECTED = "results.expected.xml";
@@ -42,7 +42,9 @@ export function runCase(caseName: string, caseDir: string): void {
   const hasExpectedError = fs.existsSync(expectedErrorPath);
 
   if (hasExpectedXml === hasExpectedError) {
-    throw new Error("Expected exactly one of results.expected.xml or expected-error.json");
+    throw new Error(
+      "Expected exactly one of results.expected.xml or expected-error.json",
+    );
   }
 
   if (!fs.existsSync(assessmentTestPath)) {
@@ -52,7 +54,9 @@ export function runCase(caseName: string, caseDir: string): void {
   let actualResult: string | ScoringError;
   let actualStderr = "";
   const options = fs.existsSync(optionsPath)
-    ? (JSON.parse(fs.readFileSync(optionsPath, "utf8")) as { preserveMet?: boolean })
+    ? (JSON.parse(fs.readFileSync(optionsPath, "utf8")) as {
+        preserveMet?: boolean;
+      })
     : undefined;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "apply-qti-results-"));
   const tempResultsPath = path.join(tempDir, RESULTS_INPUT);
@@ -79,21 +83,39 @@ export function runCase(caseName: string, caseDir: string): void {
     }
 
     if (hasExpectedError) {
-      assert.strictEqual(typeof actualResult !== "string", true, "Expected error result");
-      const expected = JSON.parse(fs.readFileSync(expectedErrorPath, "utf8")) as ScoringError;
+      assert.strictEqual(
+        typeof actualResult !== "string",
+        true,
+        "Expected error result",
+      );
+      const expected = JSON.parse(
+        fs.readFileSync(expectedErrorPath, "utf8"),
+      ) as ScoringError;
       assert.deepStrictEqual(actualResult, expected, "Error output mismatch");
       assertExpectedStderr(expectedStderrPath, actualStderr);
       const originalXml = fs.readFileSync(resultsInputPath, "utf8");
       const actualXml = fs.readFileSync(tempResultsPath, "utf8");
-      assert.deepStrictEqual(normalizeXml(actualXml), normalizeXml(originalXml), "Results file changed on error");
+      assert.deepStrictEqual(
+        normalizeXml(actualXml),
+        normalizeXml(originalXml),
+        "Results file changed on error",
+      );
       return;
     }
 
-    assert.strictEqual(typeof actualResult === "string", true, "Expected XML output");
+    assert.strictEqual(
+      typeof actualResult === "string",
+      true,
+      "Expected XML output",
+    );
     const expectedXml = fs.readFileSync(expectedOutputPath, "utf8");
     const normalizedActual = normalizeXml(actualResult as string);
     const normalizedExpected = normalizeXml(expectedXml);
-    assert.deepStrictEqual(normalizedActual, normalizedExpected, "XML output mismatch");
+    assert.deepStrictEqual(
+      normalizedActual,
+      normalizedExpected,
+      "XML output mismatch",
+    );
     assertExpectedStderr(expectedStderrPath, actualStderr);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
@@ -110,7 +132,9 @@ type GlobConfig = {
 };
 
 function runGlobCase(caseDir: string, globConfigPath: string): void {
-  const config = JSON.parse(fs.readFileSync(globConfigPath, "utf8")) as GlobConfig;
+  const config = JSON.parse(
+    fs.readFileSync(globConfigPath, "utf8"),
+  ) as GlobConfig;
   if (!config.resultsGlob || !config.scoringGlob) {
     throw new Error("glob.json must include resultsGlob and scoringGlob");
   }
@@ -118,7 +142,10 @@ function runGlobCase(caseDir: string, globConfigPath: string): void {
   const expectedDir = path.join(caseDir, config.expectedDir ?? "expected");
   const expectedErrorPath = path.join(caseDir, EXPECTED_ERROR);
   const expectedStderrPath = path.join(caseDir, EXPECTED_STDERR);
-  const assessmentTestPath = path.join(caseDir, config.assessmentTest ?? ASSESSMENT_TEST);
+  const assessmentTestPath = path.join(
+    caseDir,
+    config.assessmentTest ?? ASSESSMENT_TEST,
+  );
 
   if (!fs.existsSync(assessmentTestPath)) {
     throw new Error(`Missing ${ASSESSMENT_TEST}`);
@@ -127,7 +154,9 @@ function runGlobCase(caseDir: string, globConfigPath: string): void {
   const hasExpectedError = fs.existsSync(expectedErrorPath);
   const hasExpectedOutput = fs.existsSync(expectedDir);
   if (hasExpectedError === hasExpectedOutput) {
-    throw new Error("Expected exactly one of expected-error.json or expected output directory");
+    throw new Error(
+      "Expected exactly one of expected-error.json or expected output directory",
+    );
   }
 
   const resultsRoot = deriveGlobRoot(config.resultsGlob);
@@ -167,15 +196,25 @@ function runGlobCase(caseDir: string, globConfigPath: string): void {
     }
 
     if (hasExpectedError) {
-      assert.strictEqual(typeof actualResult !== "string", true, "Expected error result");
-      const expected = JSON.parse(fs.readFileSync(expectedErrorPath, "utf8")) as ScoringError;
+      assert.strictEqual(
+        typeof actualResult !== "string",
+        true,
+        "Expected error result",
+      );
+      const expected = JSON.parse(
+        fs.readFileSync(expectedErrorPath, "utf8"),
+      ) as ScoringError;
       assert.deepStrictEqual(actualResult, expected, "Error output mismatch");
       assertExpectedStderr(expectedStderrPath, actualStderr);
       assertDirectoryUnchanged(resultsRootPath, tempResultsRootPath);
       return;
     }
 
-    assert.strictEqual(typeof actualResult === "string", true, "Expected XML output");
+    assert.strictEqual(
+      typeof actualResult === "string",
+      true,
+      "Expected XML output",
+    );
     assertExpectedStderr(expectedStderrPath, actualStderr);
     assertExpectedGlobOutputs(expectedDir, tempResultsRootPath);
   } finally {
@@ -209,7 +248,10 @@ function copyDirectory(source: string, destination: string): void {
   }
 }
 
-function assertExpectedGlobOutputs(expectedRoot: string, actualRoot: string): void {
+function assertExpectedGlobOutputs(
+  expectedRoot: string,
+  actualRoot: string,
+): void {
   const expectedFiles = collectFiles(expectedRoot);
   if (expectedFiles.length === 0) {
     throw new Error("Expected output directory has no files");
@@ -224,11 +266,18 @@ function assertExpectedGlobOutputs(expectedRoot: string, actualRoot: string): vo
     const actualXml = fs.readFileSync(actualFile, "utf8");
     const normalizedActual = normalizeXml(actualXml);
     const normalizedExpected = normalizeXml(expectedXml);
-    assert.deepStrictEqual(normalizedActual, normalizedExpected, `XML output mismatch: ${relative}`);
+    assert.deepStrictEqual(
+      normalizedActual,
+      normalizedExpected,
+      `XML output mismatch: ${relative}`,
+    );
   }
 }
 
-function assertDirectoryUnchanged(originalRoot: string, tempRoot: string): void {
+function assertDirectoryUnchanged(
+  originalRoot: string,
+  tempRoot: string,
+): void {
   const originalFiles = collectFiles(originalRoot);
   for (const originalFile of originalFiles) {
     const relative = path.relative(originalRoot, originalFile);
@@ -238,7 +287,11 @@ function assertDirectoryUnchanged(originalRoot: string, tempRoot: string): void 
     }
     const originalXml = fs.readFileSync(originalFile, "utf8");
     const tempXml = fs.readFileSync(tempFile, "utf8");
-    assert.deepStrictEqual(normalizeXml(tempXml), normalizeXml(originalXml), `Results file changed: ${relative}`);
+    assert.deepStrictEqual(
+      normalizeXml(tempXml),
+      normalizeXml(originalXml),
+      `Results file changed: ${relative}`,
+    );
   }
 }
 
@@ -258,7 +311,10 @@ function collectFiles(root: string): string[] {
   return files;
 }
 
-function assertExpectedStderr(expectedStderrPath: string, actualStderr: string): void {
+function assertExpectedStderr(
+  expectedStderrPath: string,
+  actualStderr: string,
+): void {
   if (!fs.existsSync(expectedStderrPath)) {
     assert.strictEqual(actualStderr, "", "Unexpected stderr output");
     return;

@@ -1,5 +1,5 @@
-import { buildXml, parseXml, type XmlObject } from "./xml.ts";
-import { ScoringFailure, type ScoringError } from "./types.ts";
+import { buildXml, parseXml, type XmlObject } from "./xml.js";
+import { ScoringFailure, type ScoringError } from "./types.js";
 
 const RESULTS_NAMESPACE = "http://www.imsglobal.org/xsd/imsqti_result_v3p0";
 const ITEM_NAMESPACE = "http://www.imsglobal.org/xsd/imsqti_v3p0";
@@ -21,7 +21,6 @@ type PreserveMetDowngradeNotice = {
   rubricIndex: number;
 };
 
-
 type RubricCriterion = {
   points: string;
   text: string;
@@ -34,12 +33,20 @@ type Rubric = {
 
 type XmlNode = XmlObject | string | number | boolean | null | undefined;
 
-export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {}): string {
+export function applyScoringUpdates(
+  input: ApplyInput,
+  options: ApplyOptions = {},
+): string {
   const preserveMet = Boolean(options.preserveMet);
   const onPreserveMetDowngrade = options.onPreserveMetDowngrade;
   const scoringItems = readScoringItems(input.scoringInput);
-  const resultsDoc = parseXmlOrFail(input.resultsXml, "failed to parse results");
-  const assessmentResult = (resultsDoc as XmlObject).assessmentResult as XmlObject | undefined;
+  const resultsDoc = parseXmlOrFail(
+    input.resultsXml,
+    "failed to parse results",
+  );
+  const assessmentResult = (resultsDoc as XmlObject).assessmentResult as
+    | XmlObject
+    | undefined;
   if (!assessmentResult) {
     fail("root element must be assessmentResult");
   }
@@ -49,7 +56,10 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
     fail("missing results namespace", "/assessmentResult");
   }
   if (resultNamespace !== RESULTS_NAMESPACE) {
-    fail(`unexpected results namespace: ${resultNamespace}`, "/assessmentResult");
+    fail(
+      `unexpected results namespace: ${resultNamespace}`,
+      "/assessmentResult",
+    );
   }
 
   const itemResults = ensureArray(assessmentResult.itemResult);
@@ -71,8 +81,14 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
 
   const itemOrder = normalizeItemOrder(input.itemOrder, itemSourceById);
   const itemOrderSet = new Set(itemOrder);
-  const itemResultBySequenceIndex = mapItemResultsBySequenceIndex(itemResults, itemOrder.length);
-  for (const [sequenceIndex, itemResult] of itemResultBySequenceIndex.entries()) {
+  const itemResultBySequenceIndex = mapItemResultsBySequenceIndex(
+    itemResults as XmlObject[],
+    itemOrder.length,
+  );
+  for (const [
+    sequenceIndex,
+    itemResult,
+  ] of itemResultBySequenceIndex.entries()) {
     const itemId = itemOrder[sequenceIndex - 1];
     if (itemResultByItemId.has(itemId)) {
       failResultItem(itemId, "duplicate item result for sequenceIndex");
@@ -82,7 +98,10 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
   for (let index = 0; index < itemOrder.length; index += 1) {
     const itemId = itemOrder[index];
     if (!itemResultByItemId.has(itemId)) {
-      failResultItem(`Q${index + 1}`, "itemResult missing for assessment test item");
+      failResultItem(
+        `Q${index + 1}`,
+        "itemResult missing for assessment test item",
+      );
     }
   }
 
@@ -136,7 +155,9 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
         );
       }
 
-      const existingRubricMet = preserveMet ? extractExistingRubricMet(outcomes) : new Map<number, boolean>();
+      const existingRubricMet = preserveMet
+        ? extractExistingRubricMet(outcomes)
+        : new Map<number, boolean>();
 
       let itemScoreScaled = 0;
       for (let index = 0; index < item.criteria.length; index += 1) {
@@ -144,21 +165,38 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
         const rubricCriterion = rubric.criteria[index];
 
         if (!criterion || typeof criterion !== "object") {
-          failItem(identifier, `criterion must be an object at index ${index + 1}`);
+          failItem(
+            identifier,
+            `criterion must be an object at index ${index + 1}`,
+          );
         }
 
-        const hasMet = Object.prototype.hasOwnProperty.call(criterion as XmlObject, "met");
+        const hasMet = Object.prototype.hasOwnProperty.call(
+          criterion as XmlObject,
+          "met",
+        );
         const metValue = (criterion as XmlObject).met;
         if (hasMet && typeof metValue !== "boolean") {
-          failItem(identifier, `criterion met must be boolean at index ${index + 1}`);
+          failItem(
+            identifier,
+            `criterion met must be boolean at index ${index + 1}`,
+          );
         }
 
-        if ("criterionText" in (criterion as XmlObject) && (criterion as XmlObject).criterionText !== undefined) {
+        if (
+          "criterionText" in (criterion as XmlObject) &&
+          (criterion as XmlObject).criterionText !== undefined
+        ) {
           const criterionText = (criterion as XmlObject).criterionText;
           if (typeof criterionText !== "string") {
-            failItem(identifier, `criterionText must be string at index ${index + 1}`);
+            failItem(
+              identifier,
+              `criterionText must be string at index ${index + 1}`,
+            );
           }
-          const expectedNormalized = normalizeCriterionText(rubricCriterion.text);
+          const expectedNormalized = normalizeCriterionText(
+            rubricCriterion.text,
+          );
           const actualNormalized = normalizeCriterionText(criterionText);
           if (expectedNormalized !== actualNormalized) {
             const expectedText = JSON.stringify(rubricCriterion.text);
@@ -174,8 +212,13 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
 
         const existingMet = existingRubricMet.get(index + 1);
         const requestedMet = hasMet ? (metValue as boolean) : undefined;
-        const preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
-        const finalMet = hasMet ? (preserveDowngrade ? true : requestedMet) : existingMet;
+        const preserveDowngrade =
+          preserveMet && existingMet === true && requestedMet === false;
+        const finalMet = hasMet
+          ? preserveDowngrade
+            ? true
+            : requestedMet
+          : existingMet;
 
         if (preserveDowngrade) {
           onPreserveMetDowngrade?.({
@@ -185,7 +228,10 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
         }
 
         if (finalMet === true) {
-          itemScoreScaled += toScaledInt(rubricCriterion.points, rubric.scaleDigits);
+          itemScoreScaled += toScaledInt(
+            rubricCriterion.points,
+            rubric.scaleDigits,
+          );
         }
 
         if (hasMet) {
@@ -242,7 +288,11 @@ export function applyScoringUpdates(input: ApplyInput, options: ApplyOptions = {
 function readScoringItems(
   scoringInput: unknown,
 ): Array<{ identifier: string; criteria: unknown; comment?: unknown }> {
-  if (!scoringInput || typeof scoringInput !== "object" || Array.isArray(scoringInput)) {
+  if (
+    !scoringInput ||
+    typeof scoringInput !== "object" ||
+    Array.isArray(scoringInput)
+  ) {
     fail("scoring input must be an object", "/scoring");
   }
   const items = (scoringInput as XmlObject).items;
@@ -252,11 +302,17 @@ function readScoringItems(
 
   return items.map((item, index) => {
     if (!item || typeof item !== "object") {
-      fail(`scoring item must be an object at index ${index + 1}`, "/scoring/items");
+      fail(
+        `scoring item must be an object at index ${index + 1}`,
+        "/scoring/items",
+      );
     }
     const identifier = (item as XmlObject).identifier;
     if (typeof identifier !== "string" || identifier.length === 0) {
-      fail("missing item identifier in scoring input", "/assessmentResult/itemResult");
+      fail(
+        "missing item identifier in scoring input",
+        "/assessmentResult/itemResult",
+      );
     }
     return {
       identifier,
@@ -300,12 +356,16 @@ function extractRubric(root: XmlObject, identifier: string): Rubric {
   }
 
   const rubricBlocks = ensureArray(itemBody["qti-rubric-block"]) as XmlObject[];
-  const scorerBlock = rubricBlocks.find((block) => block?.["@_view"] === "scorer");
+  const scorerBlock = rubricBlocks.find(
+    (block) => block?.["@_view"] === "scorer",
+  );
   if (!scorerBlock) {
     failItem(identifier, "scorer rubric not found");
   }
 
-  const paragraphs = ensureArray((scorerBlock as XmlObject)["qti-p"]) as XmlNode[];
+  const paragraphs = ensureArray(
+    (scorerBlock as XmlObject)["qti-p"],
+  ) as XmlNode[];
   if (paragraphs.length === 0) {
     failItem(identifier, "scorer rubric not found");
   }
@@ -339,7 +399,11 @@ function getTextContent(node: XmlNode): string {
   if (node === undefined || node === null) {
     return "";
   }
-  if (typeof node === "string" || typeof node === "number" || typeof node === "boolean") {
+  if (
+    typeof node === "string" ||
+    typeof node === "number" ||
+    typeof node === "boolean"
+  ) {
     return String(node);
   }
   if (typeof node === "object" && "#text" in node) {
@@ -348,15 +412,19 @@ function getTextContent(node: XmlNode): string {
   return "";
 }
 
-function collectItemScores(itemResults: Iterable<XmlObject>): Array<{ scaled: number; scale: number }> {
+function collectItemScores(
+  itemResults: Iterable<XmlObject>,
+): Array<{ scaled: number; scale: number }> {
   const scores: Array<{ scaled: number; scale: number }> = [];
   for (const itemResult of itemResults) {
     const outcomes = ensureArray(itemResult.outcomeVariable) as XmlObject[];
-    const outcome = outcomes.find((candidate) => candidate?.["@_identifier"] === "SCORE");
+    const outcome = outcomes.find(
+      (candidate) => candidate?.["@_identifier"] === "SCORE",
+    );
     if (!outcome) {
       continue;
     }
-    const rawValue = getTextContent((outcome as XmlObject).value);
+    const rawValue = getTextContent((outcome as XmlObject).value as XmlNode);
     const parsed = parseScoreValue(rawValue);
     if (parsed) {
       scores.push(parsed);
@@ -365,7 +433,9 @@ function collectItemScores(itemResults: Iterable<XmlObject>): Array<{ scaled: nu
   return scores;
 }
 
-function parseScoreValue(rawValue: string): { scaled: number; scale: number } | null {
+function parseScoreValue(
+  rawValue: string,
+): { scaled: number; scale: number } | null {
   if (!rawValue) {
     return null;
   }
@@ -392,7 +462,7 @@ function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {
     if (!Number.isFinite(index)) {
       continue;
     }
-    const rawValue = getTextContent((outcome as XmlObject).value);
+    const rawValue = getTextContent((outcome as XmlObject).value as XmlNode);
     if (rawValue === "true") {
       result.set(index, true);
     } else if (rawValue === "false") {
@@ -402,7 +472,10 @@ function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {
   return result;
 }
 
-function normalizeItemOrder(itemOrder: string[], itemSourceById: Map<string, XmlObject>): string[] {
+function normalizeItemOrder(
+  itemOrder: string[],
+  itemSourceById: Map<string, XmlObject>,
+): string[] {
   if (!Array.isArray(itemOrder) || itemOrder.length === 0) {
     failAssessmentTest("assessment test has no item refs");
   }
@@ -412,10 +485,15 @@ function normalizeItemOrder(itemOrder: string[], itemSourceById: Map<string, Xml
       failAssessmentTest("assessment test item identifier missing");
     }
     if (seen.has(identifier)) {
-      failAssessmentTest(`duplicate item identifier in assessment test: ${identifier}`);
+      failAssessmentTest(
+        `duplicate item identifier in assessment test: ${identifier}`,
+      );
     }
     if (!itemSourceById.has(identifier)) {
-      failAssessmentTest(`item identifier not found in item sources: ${identifier}`, identifier);
+      failAssessmentTest(
+        `item identifier not found in item sources: ${identifier}`,
+        identifier,
+      );
     }
     seen.add(identifier);
   }
@@ -430,17 +508,29 @@ function mapItemResultsBySequenceIndex(
   for (const itemResult of itemResults) {
     const raw = itemResult?.["@_sequenceIndex"];
     if (raw === undefined || raw === null || raw === "") {
-      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "sequenceIndex is required");
+      failResultItem(
+        String(itemResult?.["@_identifier"] ?? ""),
+        "sequenceIndex is required",
+      );
     }
     const sequenceIndex = Number(raw);
     if (!Number.isInteger(sequenceIndex) || sequenceIndex < 1) {
-      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "sequenceIndex must be a positive integer");
+      failResultItem(
+        String(itemResult?.["@_identifier"] ?? ""),
+        "sequenceIndex must be a positive integer",
+      );
     }
     if (sequenceIndex > maxSequenceIndex) {
-      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "sequenceIndex exceeds assessment test item count");
+      failResultItem(
+        String(itemResult?.["@_identifier"] ?? ""),
+        "sequenceIndex exceeds assessment test item count",
+      );
     }
     if (map.has(sequenceIndex)) {
-      failResultItem(String(itemResult?.["@_identifier"] ?? ""), "duplicate sequenceIndex in results");
+      failResultItem(
+        String(itemResult?.["@_identifier"] ?? ""),
+        "duplicate sequenceIndex in results",
+      );
     }
     map.set(sequenceIndex, itemResult);
   }
@@ -500,7 +590,9 @@ function upsertOutcomeVariable(
   baseType: string,
   value: string,
 ): void {
-  const index = outcomes.findIndex((outcome) => outcome?.["@_identifier"] === identifier);
+  const index = outcomes.findIndex(
+    (outcome) => outcome?.["@_identifier"] === identifier,
+  );
   if (index >= 0) {
     const existing = outcomes[index];
     existing["@_identifier"] = identifier;
@@ -515,8 +607,13 @@ function upsertOutcomeVariable(
   });
 }
 
-function removeOutcomeVariable(outcomes: XmlObject[], identifier: string): void {
-  const index = outcomes.findIndex((outcome) => outcome?.["@_identifier"] === identifier);
+function removeOutcomeVariable(
+  outcomes: XmlObject[],
+  identifier: string,
+): void {
+  const index = outcomes.findIndex(
+    (outcome) => outcome?.["@_identifier"] === identifier,
+  );
   if (index >= 0) {
     outcomes.splice(index, 1);
   }
@@ -534,11 +631,19 @@ function fail(reason: string, pathValue = "/", identifier?: string): never {
 }
 
 function failItem(identifier: string, reason: string): never {
-  fail(reason, `/assessmentResult/itemResult[@identifier='${identifier}']`, identifier);
+  fail(
+    reason,
+    `/assessmentResult/itemResult[@identifier='${identifier}']`,
+    identifier,
+  );
 }
 
 function failResultItem(identifier: string, reason: string): never {
-  fail(reason, `/assessmentResult/itemResult[@identifier='${identifier}']`, identifier);
+  fail(
+    reason,
+    `/assessmentResult/itemResult[@identifier='${identifier}']`,
+    identifier,
+  );
 }
 
 function failAssessmentTest(reason: string, identifier?: string): never {

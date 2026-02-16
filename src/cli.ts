@@ -1,11 +1,12 @@
+#!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { applyScoringUpdates } from "./apply-qti-results.ts";
-import { expandPathOrGlob, hasGlobPattern } from "./glob.ts";
-import { parseXml, type XmlObject } from "./xml.ts";
-import { ScoringFailure, type ScoringError } from "./types.ts";
+import { applyScoringUpdates } from "./apply-qti-results.js";
+import { expandPathOrGlob, hasGlobPattern } from "./glob.js";
+import { parseXml, type XmlObject } from "./xml.js";
+import { ScoringFailure, type ScoringError } from "./types.js";
 
 type CliArgs = {
   results: string | null;
@@ -25,11 +26,17 @@ export function runCli(argv: string[]): void {
   }
 
   if (args.scoringTemplate && !args.resultsRegex) {
-    writeError({ path: "/scoring-template", reason: "scoring-template requires results-regex" });
+    writeError({
+      path: "/scoring-template",
+      reason: "scoring-template requires results-regex",
+    });
     return;
   }
   if (args.resultsRegex && !args.scoringTemplate) {
-    writeError({ path: "/scoring-template", reason: "scoring-template is required when results-regex is set" });
+    writeError({
+      path: "/scoring-template",
+      reason: "scoring-template is required when results-regex is set",
+    });
     return;
   }
 
@@ -42,7 +49,10 @@ export function runCli(argv: string[]): void {
 
   if (regexMode) {
     if (!hasGlobPattern(args.scoring) && !fs.existsSync(args.scoring)) {
-      writeError({ path: "/scoring", reason: `missing scoring path: ${args.scoring}` });
+      writeError({
+        path: "/scoring",
+        reason: `missing scoring path: ${args.scoring}`,
+      });
       return;
     }
   } else if (!hasGlobPattern(args.scoring) && !fileExists(args.scoring)) {
@@ -50,7 +60,10 @@ export function runCli(argv: string[]): void {
     return;
   }
   if (!fileExists(args.assessmentTest)) {
-    writeError({ path: "/", reason: `missing assessment test file: ${args.assessmentTest}` });
+    writeError({
+      path: "/",
+      reason: `missing assessment test file: ${args.assessmentTest}`,
+    });
     return;
   }
 
@@ -61,7 +74,10 @@ export function runCli(argv: string[]): void {
     const itemSourceXmls = assessmentTest.itemRefs.map((ref) => {
       const itemPath = path.resolve(testDir, ref.href);
       if (!fileExists(itemPath)) {
-        throw new ScoringFailure({ path: "/assessmentTest", reason: `missing item file: ${itemPath}` });
+        throw new ScoringFailure({
+          path: "/assessmentTest",
+          reason: `missing item file: ${itemPath}`,
+        });
       }
       return fs.readFileSync(itemPath, "utf8");
     });
@@ -76,7 +92,9 @@ export function runCli(argv: string[]): void {
     for (const pair of inputPairs) {
       try {
         const resultsXml = fs.readFileSync(pair.resultsPath, "utf8");
-        const scoringInput = JSON.parse(fs.readFileSync(pair.scoringPath, "utf8")) as unknown;
+        const scoringInput = JSON.parse(
+          fs.readFileSync(pair.scoringPath, "utf8"),
+        ) as unknown;
         const outputXml = applyScoringUpdates(
           {
             resultsXml,
@@ -96,7 +114,9 @@ export function runCli(argv: string[]): void {
         writeResultsInPlace(pair.resultsPath, outputXml);
       } catch (error) {
         if (isBatch) {
-          process.stderr.write(`batch: failed for results file ${pair.resultsPath}\n`);
+          process.stderr.write(
+            `batch: failed for results file ${pair.resultsPath}\n`,
+          );
         }
         throw error;
       }
@@ -108,7 +128,10 @@ export function runCli(argv: string[]): void {
     }
 
     if (error instanceof SyntaxError) {
-      writeError({ path: "/", reason: `failed to parse scoring input: ${error.message}` });
+      writeError({
+        path: "/",
+        reason: `failed to parse scoring input: ${error.message}`,
+      });
       return;
     }
 
@@ -175,7 +198,10 @@ function writeError(payload: ScoringError): void {
 function writeResultsInPlace(targetPath: string, contents: string): void {
   const directory = path.dirname(targetPath);
   const baseName = path.basename(targetPath);
-  const tempPath = path.join(directory, `.tmp-${baseName}-${process.pid}-${Date.now()}`);
+  const tempPath = path.join(
+    directory,
+    `.tmp-${baseName}-${process.pid}-${Date.now()}`,
+  );
 
   fs.writeFileSync(tempPath, contents, "utf8");
   fs.copyFileSync(tempPath, targetPath);
@@ -183,13 +209,18 @@ function writeResultsInPlace(targetPath: string, contents: string): void {
     fs.unlinkSync(tempPath);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`warning: failed to remove temp file ${tempPath}: ${message}\n`);
+    process.stderr.write(
+      `warning: failed to remove temp file ${tempPath}: ${message}\n`,
+    );
   }
 }
 
 const __filename = fileURLToPath(import.meta.url);
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === path.resolve(__filename)
+) {
   runCli(process.argv.slice(2));
 }
 
@@ -203,7 +234,11 @@ type PairOptions = {
   scoringTemplate: string | null;
 };
 
-function resolveInputPairs(resultsArg: string, scoringArg: string, options: PairOptions): InputPair[] {
+function resolveInputPairs(
+  resultsArg: string,
+  scoringArg: string,
+  options: PairOptions,
+): InputPair[] {
   const resultsExpansion = expandPathOrGlob(resultsArg);
   if (resultsExpansion.matches.length === 0) {
     failInput("results", `results glob matched no files: ${resultsArg}`);
@@ -216,11 +251,22 @@ function resolveInputPairs(resultsArg: string, scoringArg: string, options: Pair
     failInput("scoring", `scoring glob matched no files: ${scoringArg}`);
   }
 
-  if (!regexMode && resultsExpansion.matches.length > 1 && !scoringExpansion.isGlob) {
-    failInput("scoring", "scoring must be a glob when results matches multiple files");
+  if (
+    !regexMode &&
+    resultsExpansion.matches.length > 1 &&
+    !scoringExpansion.isGlob
+  ) {
+    failInput(
+      "scoring",
+      "scoring must be a glob when results matches multiple files",
+    );
   }
 
-  if (!regexMode && resultsExpansion.matches.length === 1 && scoringExpansion.matches.length === 1) {
+  if (
+    !regexMode &&
+    resultsExpansion.matches.length === 1 &&
+    scoringExpansion.matches.length === 1
+  ) {
     return [
       {
         resultsPath: resultsExpansion.matches[0],
@@ -232,7 +278,13 @@ function resolveInputPairs(resultsArg: string, scoringArg: string, options: Pair
   if (regexMode) {
     const regex = compileResultsRegex(options.resultsRegex as string);
     const scoringRootDir = resolveScoringRoot(scoringArg, scoringExpansion);
-    const pairs = resolveRegexPairs(resultsExpansion.rootDir, resultsExpansion.matches, scoringRootDir, regex, options.scoringTemplate as string);
+    const pairs = resolveRegexPairs(
+      resultsExpansion.rootDir,
+      resultsExpansion.matches,
+      scoringRootDir,
+      regex,
+      options.scoringTemplate as string,
+    );
     pairs.sort((a, b) => a.resultsPath.localeCompare(b.resultsPath));
     return pairs;
   }
@@ -275,10 +327,16 @@ function resolveRegexPairs(
     const tokens = buildTemplateTokens(relativePath, regex);
     const scoringPath = resolveTemplatePath(scoringRootDir, template, tokens);
     if (seenScoringPaths.has(scoringPath)) {
-      failInput("scoring", `scoring template resolved duplicate scoring path: ${scoringPath}`);
+      failInput(
+        "scoring",
+        `scoring template resolved duplicate scoring path: ${scoringPath}`,
+      );
     }
     if (!fs.existsSync(scoringPath)) {
-      failInput("scoring", `scoring file not found for results entry: ${relativePath}`);
+      failInput(
+        "scoring",
+        `scoring file not found for results entry: ${relativePath}`,
+      );
     }
     seenScoringPaths.add(scoringPath);
     pairs.push({ resultsPath, scoringPath });
@@ -290,7 +348,9 @@ function resolveRegexPairs(
 function buildMatchKey(rootDir: string, filePath: string): string {
   const relativePath = buildRelativePath(rootDir, filePath);
   const parsed = path.posix.parse(relativePath);
-  const withoutExtension = parsed.dir ? path.posix.join(parsed.dir, parsed.name) : parsed.name;
+  const withoutExtension = parsed.dir
+    ? path.posix.join(parsed.dir, parsed.name)
+    : parsed.name;
   return normalizeKey(withoutExtension);
 }
 
@@ -312,7 +372,10 @@ function compileResultsRegex(pattern: string): RegExp {
   }
 }
 
-function resolveScoringRoot(scoringArg: string, scoringExpansion: ReturnType<typeof expandPathOrGlob>): string {
+function resolveScoringRoot(
+  scoringArg: string,
+  scoringExpansion: ReturnType<typeof expandPathOrGlob>,
+): string {
   if (hasGlobPattern(scoringArg)) {
     return scoringExpansion.rootDir;
   }
@@ -327,10 +390,15 @@ function resolveScoringRoot(scoringArg: string, scoringExpansion: ReturnType<typ
   return scoringExpansion.rootDir;
 }
 
-function buildTemplateTokens(relativePath: string, regex: RegExp): Record<string, string> {
+function buildTemplateTokens(
+  relativePath: string,
+  regex: RegExp,
+): Record<string, string> {
   const match = regex.exec(relativePath);
   if (!match || match[0] !== relativePath) {
-    failResultsRegex(`results regex did not match results entry: ${relativePath}`);
+    failResultsRegex(
+      `results regex did not match results entry: ${relativePath}`,
+    );
   }
 
   const parsed = path.posix.parse(relativePath);
@@ -362,7 +430,11 @@ function buildTemplateTokens(relativePath: string, regex: RegExp): Record<string
   return tokens;
 }
 
-function resolveTemplatePath(scoringRootDir: string, template: string, tokens: Record<string, string>): string {
+function resolveTemplatePath(
+  scoringRootDir: string,
+  template: string,
+  tokens: Record<string, string>,
+): string {
   const rendered = applyTemplate(template, tokens);
   if (path.isAbsolute(rendered)) {
     return rendered;
@@ -370,7 +442,10 @@ function resolveTemplatePath(scoringRootDir: string, template: string, tokens: R
   return path.resolve(scoringRootDir, rendered);
 }
 
-function applyTemplate(template: string, tokens: Record<string, string>): string {
+function applyTemplate(
+  template: string,
+  tokens: Record<string, string>,
+): string {
   return template.replace(/\{([^{}]+)\}/g, (_match, tokenName: string) => {
     const token = tokens[tokenName] ?? tokens[tokenName.toLowerCase()];
     if (token === undefined) {
@@ -401,23 +476,36 @@ function parseAssessmentTest(xml: string): { itemRefs: AssessmentTestRef[] } {
   const doc = parseXml(xml);
   const testRoot = doc["qti-assessment-test"] as XmlObject | undefined;
   if (!testRoot) {
-    throw new ScoringFailure({ path: "/assessmentTest", reason: "root element must be qti-assessment-test" });
+    throw new ScoringFailure({
+      path: "/assessmentTest",
+      reason: "root element must be qti-assessment-test",
+    });
   }
 
   const itemRefs: AssessmentTestRef[] = [];
   const testParts = ensureArray(testRoot["qti-test-part"]);
   for (const part of testParts) {
-    const sections = ensureArray((part as XmlObject)?.["qti-assessment-section"]);
+    const sections = ensureArray(
+      (part as XmlObject)?.["qti-assessment-section"],
+    );
     for (const section of sections) {
-      const refs = ensureArray((section as XmlObject)?.["qti-assessment-item-ref"]);
+      const refs = ensureArray(
+        (section as XmlObject)?.["qti-assessment-item-ref"],
+      );
       for (const ref of refs) {
         const identifier = (ref as XmlObject)?.["@_identifier"];
         const href = (ref as XmlObject)?.["@_href"];
         if (typeof identifier !== "string" || identifier.length === 0) {
-          throw new ScoringFailure({ path: "/assessmentTest", reason: "item ref missing identifier" });
+          throw new ScoringFailure({
+            path: "/assessmentTest",
+            reason: "item ref missing identifier",
+          });
         }
         if (typeof href !== "string" || href.length === 0) {
-          throw new ScoringFailure({ path: "/assessmentTest", reason: "item ref missing href" });
+          throw new ScoringFailure({
+            path: "/assessmentTest",
+            reason: "item ref missing href",
+          });
         }
         itemRefs.push({ identifier, href });
       }
@@ -425,7 +513,10 @@ function parseAssessmentTest(xml: string): { itemRefs: AssessmentTestRef[] } {
   }
 
   if (itemRefs.length === 0) {
-    throw new ScoringFailure({ path: "/assessmentTest", reason: "assessment test has no item refs" });
+    throw new ScoringFailure({
+      path: "/assessmentTest",
+      reason: "assessment test has no item refs",
+    });
   }
 
   return { itemRefs };
