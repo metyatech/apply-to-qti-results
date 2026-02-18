@@ -74,7 +74,8 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/autonomous-operations.md
 # Autonomous operations
 
 - Optimize for minimal human effort; default to automation over manual steps.
-- Drive work from the desired outcome: infer acceptance criteria, choose the shortest safe path, and execute end-to-end.
+- Drive work from the desired outcome: infer acceptance criteria, choose the highest-quality safe path that satisfies the requested quality/ideal bar, and execute end-to-end.
+- Treat speed as a secondary optimization; never trade down correctness, safety, robustness, or verifiability unless the requester explicitly approves that tradeoff.
 - Assume end-to-end autonomy for repository operations (issue triage, PRs, direct pushes to main/master, merges, releases, repo admin) only within repositories under the user's control (e.g., owned by metyatech or where the user has explicit maintainer/push authority), unless the user restricts scope; for third-party repos, require explicit user request before any of these operations.
 - Do not preserve backward compatibility unless explicitly requested; avoid legacy aliases and compatibility shims by default.
 - When work reveals rule gaps, redundancy, or misplacement, proactively update rule modules/rulesets (including moves/renames) and regenerate AGENTS.md without waiting for explicit user requests.
@@ -128,6 +129,9 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/implementation-and-coding
 - Avoid deep nesting; use guard clauses and small functions.
 - Use clear, intention-revealing naming; avoid "Utils" dumping grounds.
 - Prefer configuration/constants over hardcoding; consolidate change points.
+- For GUI changes, prioritize ergonomics and discoverability so first-time users can complete core flows without external documents.
+- Every user-facing GUI component (inputs, actions, status indicators, lists, and dialog controls) must include an in-app explanation (for example tooltip, context help panel, or equivalent).
+- Do not rely on README-only guidance for GUI operation; critical usage guidance must be available inside the GUI itself.
 - Keep everything DRY across code, specs, docs, tests, configs, and scripts; proactively refactor repeated procedures into shared configs/scripts with small, local overrides.
 - Persist durable runtime/domain data in a database with a fully normalized schema (3NF/BCNF target): store each fact once with keys/constraints, and compute derived statuses/views at read time instead of duplicating them.
 - Fix root causes; remove obsolete/unused code, branches, comments, and helpers.
@@ -259,6 +263,12 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/observability-and-diagnos
 - Design for debuggability: make failures diagnosable from logs/metrics/traces without reproducing locally.
 - Add observability in the same change set as behavior changes that affect runtime behavior, performance, or reliability.
 
+## Performance investigations
+
+- For performance/latency issues, measure first: establish a baseline, then use profiling/instrumentation to identify hotspots; do not implement "optimizations" based on guesswork.
+- Record before/after numbers and the measurement method in the change set (tests, benchmark output, logs, or deterministic manual steps).
+- Prefer automated performance regression tests/benchmarks when feasible; otherwise provide deterministic manual measurement steps.
+
 ## Logging
 
 - Prefer structured logs for services; keep field names stable (e.g., level, message, component, request_id/trace_id, version).
@@ -356,6 +366,8 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/quality-testing-and-error
 - Keep tests deterministic; minimize time/random/external I/O; inject when needed.
 - For deterministic output files, use full-content snapshot/golden tests.
 - Prefer making nondeterministic failures reproducible over adding sleeps/retries; do not mask flakiness.
+- For timing/order/race issues, prefer deterministic synchronization (events, versioned state, acks/handshakes) over fixed sleeps.
+- If a heuristic wait is unavoidable, it MUST be condition-based with a hard deadline and diagnostics, and requires explicit requester approval.
 - For integration boundaries (network/DB/external services/UI flows), add an integration/E2E/contract test that exercises the boundary; avoid unit-only coverage for integration bugs.
 - For non-trivial changes, create a small test matrix (scenarios × inputs × states) and cover the highest-risk combinations; document intentional gaps.
 
