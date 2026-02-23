@@ -26,7 +26,8 @@
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "test": "tsx test/run-test-cases.ts",
     "apply-results": "tsx src/cli.ts",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -48,6 +49,8 @@
     "@types/node": "^20.11.30",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.2.5",
     "tsx": "^4.7.1",
     "typescript": "^5.4.5",
@@ -55,5 +58,14 @@
   },
   "dependencies": {
     "fast-xml-parser": "^5.3.4"
+  },
+  "lint-staged": {
+    "**/*.ts": [
+      "prettier --check",
+      "eslint"
+    ],
+    "*.{json,md}": [
+      "prettier --check"
+    ]
   }
 }
