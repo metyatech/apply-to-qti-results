@@ -23,6 +23,11 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/agent-rules-composition.m
 - Place AGENTS.md at the project root; only add another AGENTS.md for nested independent projects.
 - Before doing any work in a repository that contains `agent-ruleset.json`, run `compose-agentsmd` in that repository to refresh its AGENTS.md and ensure rules are current.
 
+## AGENTS.md freshness
+
+- Pre-commit hooks should run `compose-agentsmd --compose` and stage any AGENTS.md changes automatically. Do not fail the commit on AGENTS.md drift; let the updated file be included in the commit.
+- Do not add AGENTS.md freshness checks to CI. AGENTS.md is generated from external rule sources; checking it in CI creates cross-repo coupling. Pre-commit hooks are sufficient.
+
 ## Update policy
 
 - Never edit AGENTS.md directly; update source rules and regenerate AGENTS.md.
@@ -88,6 +93,15 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/autonomous-operations.md
 - Prefer asynchronous, low-friction control channels (GitHub Issues/PR comments) unless a repository mandates another.
 - Design autonomous workflows for high volume: queue requests, set concurrency limits, and auto-throttle to prevent overload.
 
+## GitHub notifications
+
+- After addressing a GitHub notification (CI failure fixed, PR reviewed, issue resolved), mark it as done so the user's inbox stays clean.
+- To mark notifications as done, use the GraphQL `markNotificationsAsDone` mutation. The REST API `PATCH /notifications/threads/{id}` only marks as read, not done.
+  - Get notification IDs: `gh api graphql -f query='{ viewer { notificationThreads(first: 50, query: "is:read") { nodes { id } } } }' --jq '[.data.viewer.notificationThreads.nodes[].id]'`
+  - Mark as done: `gh api graphql -f query="mutation { markNotificationsAsDone(input: {ids: $ids}) { success } }"`
+  - Paginate with `first`/`after` if more than 50 notifications exist.
+- If the gh token lacks the required scope, request the user to add it before proceeding.
+
 Source: github:metyatech/agent-rules@HEAD/rules/global/cli-standards.md
 
 # CLI standards
@@ -97,6 +111,12 @@ Source: github:metyatech/agent-rules@HEAD/rules/global/cli-standards.md
 Source: github:metyatech/agent-rules@HEAD/rules/global/command-execution.md
 
 # Workflow and command execution
+
+## MCP server setup verification
+
+- After adding or modifying an MCP server configuration, immediately verify connectivity using the platform's MCP health check and confirm the server is connected.
+- If a configured MCP server fails to connect, diagnose and fix before proceeding. Do not silently fall back to alternative tools without reporting the degradation.
+- At session start, if expected MCP tools are absent from the available tool set, verify MCP server health and report/fix connection failures before continuing.
 
 - Do not add wrappers or pipes to commands unless the user explicitly asks.
 - Prefer repository-standard scripts/commands (package.json scripts, README instructions).
@@ -122,6 +142,7 @@ These are non-negotiable completion gates for any state-changing work and for an
 
 ## Evidence and verification
 
+- Do not run `git commit` until the repo's full verification command has passed in the current working tree. This applies to every commit, not only the final delivery.
 - For each AC, define verification evidence (automated test preferred; otherwise a deterministic manual procedure).
 - Maintain an explicit mapping: `AC -> evidence (tests/commands/manual steps)`.
 - The mapping may be presented in a compact per-item form (one line per AC including evidence + outcome) to reduce verbosity.
