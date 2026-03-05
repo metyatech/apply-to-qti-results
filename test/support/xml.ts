@@ -1,9 +1,9 @@
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
+import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 
 const parser = new XMLParser({
   ignoreAttributes: false,
-  attributeNamePrefix: "@_",
-  textNodeName: "#text",
+  attributeNamePrefix: '@_',
+  textNodeName: '#text',
   parseTagValue: false,
   parseAttributeValue: false,
   trimValues: true,
@@ -11,8 +11,8 @@ const parser = new XMLParser({
 
 const builder = new XMLBuilder({
   ignoreAttributes: false,
-  attributeNamePrefix: "@_",
-  textNodeName: "#text",
+  attributeNamePrefix: '@_',
+  textNodeName: '#text',
   format: true,
   suppressEmptyNode: true,
 });

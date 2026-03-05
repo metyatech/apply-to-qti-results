@@ -6,6 +6,7 @@ expected output or error. These cases are intended to be consumed by an
 implementation test harness later.
 
 ## Layout
+
 - `basic/` basic success case with one item and two criteria.
 - `multi-items/` success case with two items and test-level score sum.
 - `criteria-length-mismatch/` error when criteria count does not match rubric.
@@ -32,6 +33,7 @@ implementation test harness later.
 - `glob-regex-mismatch/` error when a results file does not match the results regex.
 
 ## Conventions
+
 - Results documents use the QTI 3.0 Results Reporting namespace
   `http://www.imsglobal.org/xsd/imsqti_result_v3p0`.
 - Item source documents use the QTI 3.0 Item namespace
@@ -45,6 +47,7 @@ implementation test harness later.
 - Regex glob cases add `resultsRegex` and `scoringTemplate` in `glob.json`.
 
 ## Files
+
 - [basic](basic)
 - [multi-items](multi-items)
 - [criteria-length-mismatch](criteria-length-mismatch)

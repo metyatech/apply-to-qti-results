@@ -1,5 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
 export type GlobExpansion = {
   pattern: string;
@@ -44,7 +44,7 @@ type ParsedGlob = {
 function parseGlob(pattern: string, cwd: string): ParsedGlob {
   const normalized = normalizePattern(pattern);
   const isAbsolute = path.isAbsolute(pattern);
-  let rootPrefix = "";
+  let rootPrefix = '';
   let remainder = normalized;
 
   if (isAbsolute) {
@@ -53,7 +53,7 @@ function parseGlob(pattern: string, cwd: string): ParsedGlob {
     remainder = normalized.slice(rootPrefix.length);
   }
 
-  const segments = remainder.split("/").filter(Boolean);
+  const segments = remainder.split('/').filter(Boolean);
   const wildcardIndex = segments.findIndex((segment) => hasGlobPattern(segment));
   if (wildcardIndex === -1) {
     return {
@@ -78,7 +78,12 @@ function expandGlobSegments(rootDir: string, segments: string[]): string[] {
   return matches;
 }
 
-function walkSegments(currentDir: string, segments: string[], index: number, matches: string[]): void {
+function walkSegments(
+  currentDir: string,
+  segments: string[],
+  index: number,
+  matches: string[],
+): void {
   if (index >= segments.length) {
     if (fs.existsSync(currentDir) && fs.statSync(currentDir).isFile()) {
       matches.push(currentDir);
@@ -87,7 +92,7 @@ function walkSegments(currentDir: string, segments: string[], index: number, mat
   }
 
   const segment = segments[index];
-  if (segment === "**") {
+  if (segment === '**') {
     walkSegments(currentDir, segments, index + 1, matches);
     const entries = safeReadDir(currentDir);
     for (const entry of entries) {
@@ -120,8 +125,8 @@ function matchSegment(pattern: string, name: string): boolean {
   if (!hasGlobPattern(pattern)) {
     return pattern === name;
   }
-  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
-  const regexPattern = `^${escaped.replace(/\*/g, ".*").replace(/\?/g, ".")}$`;
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const regexPattern = `^${escaped.replace(/\*/g, '.*').replace(/\?/g, '.')}$`;
   const regex = new RegExp(regexPattern);
   return regex.test(name);
 }
@@ -139,5 +144,5 @@ function normalizePattern(pattern: string): string {
 }
 
 function normalizeSeparators(value: string): string {
-  return value.replace(/\\/g, "/");
+  return value.replace(/\\/g, '/');
 }

@@ -127,9 +127,11 @@ This repository contains the apply-to-qti-results project.
 - Install dependencies: `npm install`.
 
 ## Development Commands
-- Build: `Not configured (no build script in package.json).`
-- Test: `npm run test`
-- Lint: `Not configured (no lint script in package.json).`
+- Build: `npm run build`
+- Test: `npm test`
+- Lint: `npm run lint`
+- Format: `npm run format`
+- Verify: `npm run verify` (runs lint, typecheck, and tests)
 
 ## Requirements and Configuration
 - No required environment variables are documented.
