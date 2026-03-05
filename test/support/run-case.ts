@@ -52,7 +52,7 @@ export function runCase(caseName: string, caseDir: string): void {
   }
 
   let actualResult: string | ScoringError;
-  let actualStderr = "";
+  let actualStderr: string;
   const options = fs.existsSync(optionsPath)
     ? (JSON.parse(fs.readFileSync(optionsPath, "utf8")) as {
         preserveMet?: boolean;
@@ -79,7 +79,7 @@ export function runCase(caseName: string, caseDir: string): void {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Unhandled error: ${message}`);
+      throw new Error(`Unhandled error: ${message}`, { cause: error });
     }
 
     if (hasExpectedError) {
@@ -177,7 +177,7 @@ function runGlobCase(caseDir: string, globConfigPath: string): void {
     : path.join(caseDir, config.scoringGlob);
 
   let actualResult: string | ScoringError;
-  let actualStderr = "";
+  let actualStderr: string;
 
   try {
     const result = runImplementation({
