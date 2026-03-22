@@ -155,6 +155,24 @@ This repository contains the apply-to-qti-results project.
 
 - No required environment variables are documented.
 
+## Supported Environments
+
+- Node.js >= 20.0.0
+
+## Documentation
+
+- [SECURITY.md](SECURITY.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [LICENSE](LICENSE)
+- [CHANGELOG.md](CHANGELOG.md)
+
 ## Release and Deploy
 
-Not documented for this repository.
+1. Update version in `package.json`.
+2. `npm install` to update `package-lock.json`.
+3. Commit and push changes.
+4. Create a GitHub Release.
+5. Publish to npm:
+   ```sh
+   npm publish
+   ```
