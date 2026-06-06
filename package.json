@@ -27,7 +27,7 @@
     "test": "tsx test/run-test-cases.ts",
     "apply-results": "tsx src/cli.ts",
     "prepublishOnly": "npm run build",
-    "prepare": "husky"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
