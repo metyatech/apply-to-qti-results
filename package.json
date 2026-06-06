@@ -16,7 +16,11 @@
     "apply-to-qti-results": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc",
