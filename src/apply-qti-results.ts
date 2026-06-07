@@ -1,4 +1,9 @@
-import { buildXml, parseXml, type XmlObject } from "./xml.js";
+import {
+  buildXml,
+  parseXml,
+  parseXmlPreserveOrder,
+  type XmlObject,
+} from "./xml.js";
 import { ScoringFailure, type ScoringError } from "./types.js";
 
 const RESULTS_NAMESPACE = "http://www.imsglobal.org/xsd/imsqti_result_v3p0";
@@ -32,6 +37,19 @@ type Rubric = {
 };
 
 type XmlNode = XmlObject | string | number | boolean | null | undefined;
+
+type ParsedItemSource = {
+  identifier: string;
+  orderedRoot: OrderedElement;
+};
+
+type OrderedElement = {
+  name: string;
+  attributes: XmlObject;
+  children: OrderedNode[];
+};
+
+type OrderedNode = OrderedElement | { text: string };
 
 export function applyScoringUpdates(
   input: ApplyInput,
@@ -70,13 +88,13 @@ export function applyScoringUpdates(
     fail("testResult not found", "/assessmentResult/testResult");
   }
 
-  const itemSourceById = new Map<string, XmlObject>();
+  const itemSourceById = new Map<string, ParsedItemSource>();
   for (const itemSourceXml of input.itemSourceXmls) {
     const parsed = parseItemSource(itemSourceXml);
     if (itemSourceById.has(parsed.identifier)) {
       fail(`duplicate item identifier in sources: ${parsed.identifier}`);
     }
-    itemSourceById.set(parsed.identifier, parsed.root);
+    itemSourceById.set(parsed.identifier, parsed);
   }
 
   const itemOrder = normalizeItemOrder(input.itemOrder, itemSourceById);
@@ -332,7 +350,7 @@ function parseXmlOrFail(xml: string, reason: string): XmlObject {
   return {};
 }
 
-function parseItemSource(xml: string): { identifier: string; root: XmlObject } {
+function parseItemSource(xml: string): ParsedItemSource {
   const doc = parseXmlOrFail(xml, "failed to parse item source");
   const root = doc["qti-assessment-item"] as XmlObject | undefined;
   if (!root) {
@@ -346,26 +364,43 @@ function parseItemSource(xml: string): { identifier: string; root: XmlObject } {
   if (typeof identifier !== "string" || identifier.length === 0) {
     fail("missing item identifier");
   }
-  return { identifier, root };
+  const orderedRoot = parseOrderedItemSource(xml);
+  return { identifier, orderedRoot };
 }
 
-function extractRubric(root: XmlObject, identifier: string): Rubric {
-  const itemBody = root["qti-item-body"] as XmlObject | undefined;
+function parseOrderedItemSource(xml: string): OrderedElement {
+  let parsed: unknown;
+  try {
+    parsed = parseXmlPreserveOrder(xml);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    fail(`failed to parse item source: ${message}`);
+  }
+
+  const root = toOrderedNodes(parsed).find(
+    (node): node is OrderedElement =>
+      "name" in node && node.name === "qti-assessment-item",
+  );
+  if (!root) {
+    fail("root element must be qti-assessment-item");
+  }
+  return root;
+}
+
+function extractRubric(source: ParsedItemSource, identifier: string): Rubric {
+  const itemBody = findOrderedChildren(source.orderedRoot, "qti-item-body")[0];
   if (!itemBody) {
     failItem(identifier, "scorer rubric not found");
   }
 
-  const rubricBlocks = ensureArray(itemBody["qti-rubric-block"]) as XmlObject[];
-  const scorerBlock = rubricBlocks.find(
-    (block) => block?.["@_view"] === "scorer",
+  const scorerBlock = findOrderedChildren(itemBody, "qti-rubric-block").find(
+    (block) => block.attributes["@_view"] === "scorer",
   );
   if (!scorerBlock) {
     failItem(identifier, "scorer rubric not found");
   }
 
-  const paragraphs = ensureArray(
-    (scorerBlock as XmlObject)["qti-p"],
-  ) as XmlNode[];
+  const paragraphs = findOrderedChildren(scorerBlock, "qti-p");
   if (paragraphs.length === 0) {
     failItem(identifier, "scorer rubric not found");
   }
@@ -374,7 +409,7 @@ function extractRubric(root: XmlObject, identifier: string): Rubric {
   let scaleDigits = 0;
 
   for (let index = 0; index < paragraphs.length; index += 1) {
-    const text = getTextContent(paragraphs[index]);
+    const text = getOrderedTextContent(paragraphs[index]);
     const match = /^\s*\[([+-]?\d+(?:\.\d+)?)\]\s*(.+?)\s*$/.exec(text);
     if (!match) {
       failItem(identifier, `rubric line parse failed at index ${index + 1}`);
@@ -395,6 +430,57 @@ function extractRubric(root: XmlObject, identifier: string): Rubric {
   return { criteria, scaleDigits };
 }
 
+function findOrderedChildren(
+  element: OrderedElement,
+  name: string,
+): OrderedElement[] {
+  return element.children.filter(
+    (child): child is OrderedElement => "name" in child && child.name === name,
+  );
+}
+
+function getOrderedTextContent(node: OrderedNode): string {
+  if ("text" in node) {
+    return node.text;
+  }
+  return node.children.map((child) => getOrderedTextContent(child)).join(" ");
+}
+
+function toOrderedNodes(value: unknown): OrderedNode[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((entry) => {
+    const node = toOrderedNode(entry);
+    return node === undefined ? [] : [node];
+  });
+}
+
+function toOrderedNode(entry: unknown): OrderedNode | undefined {
+  if (!isRecord(entry)) {
+    return undefined;
+  }
+  if ("#text" in entry) {
+    return { text: String(entry["#text"] ?? "") };
+  }
+  const elementName = Object.keys(entry).find(
+    (key) => key !== ":@" && key !== "#text" && !key.startsWith("?"),
+  );
+  if (elementName === undefined) {
+    return undefined;
+  }
+  const attributes = isRecord(entry[":@"]) ? entry[":@"] : {};
+  return {
+    name: elementName,
+    attributes,
+    children: toOrderedNodes(entry[elementName]),
+  };
+}
+
+function isRecord(value: unknown): value is XmlObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function getTextContent(node: XmlNode): string {
   if (node === undefined || node === null) {
     return "";
@@ -406,8 +492,22 @@ function getTextContent(node: XmlNode): string {
   ) {
     return String(node);
   }
-  if (typeof node === "object" && "#text" in node) {
-    return String((node as XmlObject)["#text"]);
+  if (typeof node === "object") {
+    const objectNode = node as XmlObject;
+    const ownText =
+      "#text" in objectNode ? String(objectNode["#text"] ?? "") : "";
+    const childText = Object.entries(objectNode)
+      .filter(([key]) => key !== "#text" && !key.startsWith("@_"))
+      .flatMap(([, value]) => ensureArray<XmlNode>(value as XmlNode))
+      .map((value) => getTextContent(value))
+      .filter((value) => value.length > 0);
+
+    if (childText.length === 0) {
+      return ownText;
+    }
+    return [ownText, ...childText]
+      .filter((value) => value.length > 0)
+      .join(" ");
   }
   return "";
 }
@@ -474,7 +574,7 @@ function extractExistingRubricMet(outcomes: XmlObject[]): Map<number, boolean> {
 
 function normalizeItemOrder(
   itemOrder: string[],
-  itemSourceById: Map<string, XmlObject>,
+  itemSourceById: Map<string, ParsedItemSource>,
 ): string[] {
   if (!Array.isArray(itemOrder) || itemOrder.length === 0) {
     failAssessmentTest("assessment test has no item refs");
@@ -577,8 +677,7 @@ function formatScaled(value: number, scaleDigits: number): string {
 
 function normalizeCriterionText(text: string): string {
   return text
-    .replace(/`[^`]*`/g, "")
-    .replace(/<[^>]*>/g, "")
+    .replace(/`([^`]*)`/g, "$1")
     .replace(/[\p{P}\p{S}]/gu, "")
     .replace(/\s+/g, "")
     .toLowerCase();

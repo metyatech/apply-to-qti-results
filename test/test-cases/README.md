@@ -26,6 +26,14 @@ implementation test harness later.
 - `rubric-parse-failure/` error when rubric line format is invalid.
 - `criteria-not-array/` error when criteria is not an array.
 - `criterion-met-not-boolean/` error when met is not a boolean.
+- `criterion-text-qti-code/` success case that preserves inline `qti-code` text
+  during `criterionText` matching.
+- `criterion-text-qti-code-mismatch/` error when inline `qti-code` text differs
+  from `criterionText`.
+- `criterion-text-qti-code-middle/` success case that preserves inline `qti-code`
+  text in the middle of a criterion.
+- `criterion-text-qti-code-middle-mismatch/` error when middle inline `qti-code`
+  text differs from `criterionText`.
 - `scoring-items-empty/` error when scoring input has no items.
 - `glob-basic/` success case that applies scoring to multiple results via glob input.
 - `glob-missing-scoring/` error when a results glob entry has no matching scoring file.
@@ -67,6 +75,10 @@ implementation test harness later.
 - [rubric-parse-failure](rubric-parse-failure)
 - [criteria-not-array](criteria-not-array)
 - [criterion-met-not-boolean](criterion-met-not-boolean)
+- [criterion-text-qti-code](criterion-text-qti-code)
+- [criterion-text-qti-code-mismatch](criterion-text-qti-code-mismatch)
+- [criterion-text-qti-code-middle](criterion-text-qti-code-middle)
+- [criterion-text-qti-code-middle-mismatch](criterion-text-qti-code-middle-mismatch)
 - [scoring-items-empty](scoring-items-empty)
 - [glob-basic](glob-basic)
 - [glob-missing-scoring](glob-missing-scoring)

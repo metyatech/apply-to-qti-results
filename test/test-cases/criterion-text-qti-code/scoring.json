@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": true,
+          "criterionText": "console.log を正しく使えている"
+        },
+        {
+          "met": true,
+          "criterionText": "指定された3つの内容を、指定された順番で出力している"
+        }
+      ]
+    }
+  ]
+}

@@ -124,8 +124,10 @@ Each criterion entry contains:
 - `criterionText` (optional string): if provided, it is compared to the rubric
   criterion text (the `<criterion>` part, without the `[<points>]`) using a
   normalized match that ignores:
-  - inline code spans wrapped in backticks
-  - inline tag-like spans such as `<header>`
+  - inline code formatting differences, such as QTI `qti-code` elements or
+    Markdown backticks, while preserving the code text itself
+  - tag delimiters in inline code-like text, so `<header>` and `` `<header>` ``
+    both normalize to `header`
   - punctuation and symbols
   - whitespace
   - ASCII case differences
@@ -209,7 +211,8 @@ The tool must validate:
 - Item sources contain matching `qti-assessment-item` identifiers.
 - Rubric parsing succeeds and yields a maximum score.
 - Each `criteria` array length equals the rubric criteria count.
-- `criterionText` (when present) matches the rubric criterion text exactly.
+- `criterionText` (when present) matches the rubric criterion text under the
+  normalized matching rules above.
 - Results and scoring globs (when used) resolve to at least one file.
 - When globbing, each results entry has exactly one matching scoring file.
 - When regex mapping is enabled, the results regex is valid and matches every

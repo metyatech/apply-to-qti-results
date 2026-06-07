@@ -1,0 +1,5 @@
+{
+  "path": "/assessmentResult/itemResult[@identifier='item-1']",
+  "identifier": "item-1",
+  "reason": "criterionText does not match rubric criterion at index 1 (expected: \"console.log を正しく使えている\", got: \"alert を正しく使えている\", normalized expected: \"consolelogを正しく使えている\", normalized got: \"alertを正しく使えている\")"
+}
