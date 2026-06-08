@@ -78,6 +78,17 @@ The tool always recomputes the test-level `SCORE` using all item-level `SCORE`
 values present in the results after the update, including items that were not
 included in the scoring input.
 
+#### Objective auto-scored items
+
+Items whose source declares a `qti-correct-response` (choice and cloze
+questions) are scored deterministically by the delivery system. For these
+items the tool never overwrites the existing `SCORE` or `RUBRIC_<n>_MET`
+outcomes, even when the scoring input supplies `criteria` for them; the
+delivery system's auto-score is treated as authoritative. A `comment`, when
+provided, is still applied. Only descriptive items (no `qti-correct-response`)
+are graded from the scorer rubric `criteria`. Example fixture:
+[`test/test-cases/choice-auto-scored`](test/test-cases/choice-auto-scored).
+
 `--scoring` also accepts glob patterns when `--results` is a glob. The tool
 matches results and scoring files by **relative path without the extension**,
 using the glob root directory as the base. For example, `results/classA/a.xml`

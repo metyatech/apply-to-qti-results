@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": false,
+          "criterionText": "Selected the correct choice"
+        }
+      ],
+      "comment": "Auto-scored item."
+    }
+  ]
+}

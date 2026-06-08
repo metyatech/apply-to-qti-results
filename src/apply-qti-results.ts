@@ -41,6 +41,7 @@ type XmlNode = XmlObject | string | number | boolean | null | undefined;
 type ParsedItemSource = {
   identifier: string;
   orderedRoot: OrderedElement;
+  autoScored: boolean;
 };
 
 type OrderedElement = {
@@ -156,118 +157,22 @@ export function applyScoringUpdates(
         failItem(identifier, "scoring source not found");
       }
 
-      let rubric = rubricCache.get(identifier);
-      if (!rubric) {
-        rubric = extractRubric(itemSource, identifier);
-        rubricCache.set(identifier, rubric);
-      }
-
-      if (!Array.isArray(item.criteria)) {
-        failItem(identifier, "criteria must be an array");
-      }
-
-      if (item.criteria.length !== rubric.criteria.length) {
-        failItem(
+      if (itemSource.autoScored) {
+        // Objective auto-scored item (choice / cloze). The delivery system's
+        // auto-score is authoritative, so preserve the existing SCORE and
+        // RUBRIC_n_MET outcomes and ignore AI/manual criteria. A COMMENT, when
+        // provided, is still applied below.
+      } else {
+        applyRubricScoring({
           identifier,
-          `criteria length (${item.criteria.length}) does not match rubric criteria count (${rubric.criteria.length})`,
-        );
+          itemSource,
+          criteria: item.criteria,
+          outcomes,
+          rubricCache,
+          preserveMet,
+          onPreserveMetDowngrade,
+        });
       }
-
-      const existingRubricMet = preserveMet
-        ? extractExistingRubricMet(outcomes)
-        : new Map<number, boolean>();
-
-      let itemScoreScaled = 0;
-      for (let index = 0; index < item.criteria.length; index += 1) {
-        const criterion = item.criteria[index];
-        const rubricCriterion = rubric.criteria[index];
-
-        if (!criterion || typeof criterion !== "object") {
-          failItem(
-            identifier,
-            `criterion must be an object at index ${index + 1}`,
-          );
-        }
-
-        const hasMet = Object.prototype.hasOwnProperty.call(
-          criterion as XmlObject,
-          "met",
-        );
-        const metValue = (criterion as XmlObject).met;
-        if (hasMet && typeof metValue !== "boolean") {
-          failItem(
-            identifier,
-            `criterion met must be boolean at index ${index + 1}`,
-          );
-        }
-
-        if (
-          "criterionText" in (criterion as XmlObject) &&
-          (criterion as XmlObject).criterionText !== undefined
-        ) {
-          const criterionText = (criterion as XmlObject).criterionText;
-          if (typeof criterionText !== "string") {
-            failItem(
-              identifier,
-              `criterionText must be string at index ${index + 1}`,
-            );
-          }
-          const expectedNormalized = normalizeCriterionText(
-            rubricCriterion.text,
-          );
-          const actualNormalized = normalizeCriterionText(criterionText);
-          if (expectedNormalized !== actualNormalized) {
-            const expectedText = JSON.stringify(rubricCriterion.text);
-            const actualText = JSON.stringify(criterionText);
-            const normalizedExpected = JSON.stringify(expectedNormalized);
-            const normalizedActual = JSON.stringify(actualNormalized);
-            failItem(
-              identifier,
-              `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText}, normalized expected: ${normalizedExpected}, normalized got: ${normalizedActual})`,
-            );
-          }
-        }
-
-        const existingMet = existingRubricMet.get(index + 1);
-        const requestedMet = hasMet ? (metValue as boolean) : undefined;
-        const preserveDowngrade =
-          preserveMet && existingMet === true && requestedMet === false;
-        const finalMet = hasMet
-          ? preserveDowngrade
-            ? true
-            : requestedMet
-          : existingMet;
-
-        if (preserveDowngrade) {
-          onPreserveMetDowngrade?.({
-            itemIdentifier: identifier,
-            rubricIndex: index + 1,
-          });
-        }
-
-        if (finalMet === true) {
-          itemScoreScaled += toScaledInt(
-            rubricCriterion.points,
-            rubric.scaleDigits,
-          );
-        }
-
-        if (hasMet) {
-          upsertOutcomeVariable(
-            outcomes,
-            `RUBRIC_${index + 1}_MET`,
-            "boolean",
-            finalMet === true ? "true" : "false",
-          );
-        }
-      }
-
-      upsertOutcomeVariable(
-        outcomes,
-        "SCORE",
-        "float",
-        formatScaled(itemScoreScaled, rubric.scaleDigits),
-      );
     }
 
     if (hasComment) {
@@ -301,6 +206,137 @@ export function applyScoringUpdates(
   }
 
   return buildXml(resultsDoc);
+}
+
+type ApplyRubricScoringArgs = {
+  identifier: string;
+  itemSource: ParsedItemSource;
+  criteria: unknown;
+  outcomes: XmlObject[];
+  rubricCache: Map<string, Rubric>;
+  preserveMet: boolean;
+  onPreserveMetDowngrade?: (notice: PreserveMetDowngradeNotice) => void;
+};
+
+function applyRubricScoring(args: ApplyRubricScoringArgs): void {
+  const {
+    identifier,
+    itemSource,
+    criteria: rawCriteria,
+    outcomes,
+    rubricCache,
+    preserveMet,
+    onPreserveMetDowngrade,
+  } = args;
+
+  const item = { criteria: rawCriteria };
+  let rubric = rubricCache.get(identifier);
+  if (!rubric) {
+    rubric = extractRubric(itemSource, identifier);
+    rubricCache.set(identifier, rubric);
+  }
+
+  if (!Array.isArray(item.criteria)) {
+    failItem(identifier, "criteria must be an array");
+  }
+
+  if (item.criteria.length !== rubric.criteria.length) {
+    failItem(
+      identifier,
+      `criteria length (${item.criteria.length}) does not match rubric criteria count (${rubric.criteria.length})`,
+    );
+  }
+
+  const existingRubricMet = preserveMet
+    ? extractExistingRubricMet(outcomes)
+    : new Map<number, boolean>();
+
+  let itemScoreScaled = 0;
+  for (let index = 0; index < item.criteria.length; index += 1) {
+    const criterion = item.criteria[index];
+    const rubricCriterion = rubric.criteria[index];
+
+    if (!criterion || typeof criterion !== "object") {
+      failItem(identifier, `criterion must be an object at index ${index + 1}`);
+    }
+
+    const hasMet = Object.prototype.hasOwnProperty.call(
+      criterion as XmlObject,
+      "met",
+    );
+    const metValue = (criterion as XmlObject).met;
+    if (hasMet && typeof metValue !== "boolean") {
+      failItem(
+        identifier,
+        `criterion met must be boolean at index ${index + 1}`,
+      );
+    }
+
+    if (
+      "criterionText" in (criterion as XmlObject) &&
+      (criterion as XmlObject).criterionText !== undefined
+    ) {
+      const criterionText = (criterion as XmlObject).criterionText;
+      if (typeof criterionText !== "string") {
+        failItem(
+          identifier,
+          `criterionText must be string at index ${index + 1}`,
+        );
+      }
+      const expectedNormalized = normalizeCriterionText(rubricCriterion.text);
+      const actualNormalized = normalizeCriterionText(criterionText);
+      if (expectedNormalized !== actualNormalized) {
+        const expectedText = JSON.stringify(rubricCriterion.text);
+        const actualText = JSON.stringify(criterionText);
+        const normalizedExpected = JSON.stringify(expectedNormalized);
+        const normalizedActual = JSON.stringify(actualNormalized);
+        failItem(
+          identifier,
+          `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText}, normalized expected: ${normalizedExpected}, normalized got: ${normalizedActual})`,
+        );
+      }
+    }
+
+    const existingMet = existingRubricMet.get(index + 1);
+    const requestedMet = hasMet ? (metValue as boolean) : undefined;
+    const preserveDowngrade =
+      preserveMet && existingMet === true && requestedMet === false;
+    const finalMet = hasMet
+      ? preserveDowngrade
+        ? true
+        : requestedMet
+      : existingMet;
+
+    if (preserveDowngrade) {
+      onPreserveMetDowngrade?.({
+        itemIdentifier: identifier,
+        rubricIndex: index + 1,
+      });
+    }
+
+    if (finalMet === true) {
+      itemScoreScaled += toScaledInt(
+        rubricCriterion.points,
+        rubric.scaleDigits,
+      );
+    }
+
+    if (hasMet) {
+      upsertOutcomeVariable(
+        outcomes,
+        `RUBRIC_${index + 1}_MET`,
+        "boolean",
+        finalMet === true ? "true" : "false",
+      );
+    }
+  }
+
+  upsertOutcomeVariable(
+    outcomes,
+    "SCORE",
+    "float",
+    formatScaled(itemScoreScaled, rubric.scaleDigits),
+  );
 }
 
 function readScoringItems(
@@ -365,7 +401,22 @@ function parseItemSource(xml: string): ParsedItemSource {
     fail("missing item identifier");
   }
   const orderedRoot = parseOrderedItemSource(xml);
-  return { identifier, orderedRoot };
+  return { identifier, orderedRoot, autoScored: detectAutoScored(root) };
+}
+
+// An item is objectively auto-scored when its response declaration carries a
+// qti-correct-response (choice / cloze). Such items are scored deterministically
+// by the delivery system; their SCORE / RUBRIC_n_MET must not be overwritten by
+// AI/manual rubric criteria. Descriptive items have no correct-response and are
+// graded via the scorer rubric.
+function detectAutoScored(root: XmlObject): boolean {
+  const declarations = ensureArray<XmlNode>(
+    root["qti-response-declaration"] as XmlNode,
+  );
+  return declarations.some(
+    (declaration) =>
+      isRecord(declaration) && "qti-correct-response" in declaration,
+  );
 }
 
 function parseOrderedItemSource(xml: string): OrderedElement {
