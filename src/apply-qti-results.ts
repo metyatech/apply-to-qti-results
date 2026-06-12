@@ -250,18 +250,40 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
     );
   }
 
-  const existingRubricMet = (preserveMet || questionType === "cloze")
-    ? extractExistingRubricMet(outcomes)
-    : new Map<number, boolean>();
+  const existingRubricMet =
+    preserveMet || questionType === "cloze"
+      ? extractExistingRubricMet(outcomes)
+      : new Map<number, boolean>();
 
+  let hasExistingScore = false;
   let existingScoreScaled = 0;
+  const maxRubricScoreScaled = rubric.criteria.reduce(
+    (sum, criterion) => sum + toScaledInt(criterion.points, rubric.scaleDigits),
+    0,
+  );
+
   if (questionType === "cloze") {
-    const scoreOutcome = outcomes.find(o => o?.["@_identifier"] === "SCORE");
+    const scoreOutcome = outcomes.find(
+      (outcome) => outcome?.["@_identifier"] === "SCORE",
+    );
     if (scoreOutcome) {
-      const rawValue = getTextContent((scoreOutcome as XmlObject).value as XmlNode);
+      const rawValue = getTextContent(
+        (scoreOutcome as XmlObject).value as XmlNode,
+      );
       const parsed = parseScoreValue(rawValue);
       if (parsed) {
+        hasExistingScore = true;
         existingScoreScaled = toScaledInt(rawValue, rubric.scaleDigits);
+      }
+    }
+
+    if (
+      existingRubricMet.size === 0 &&
+      hasExistingScore &&
+      existingScoreScaled === maxRubricScoreScaled
+    ) {
+      for (let index = 0; index < rubric.criteria.length; index += 1) {
+        existingRubricMet.set(index + 1, true);
       }
     }
   }
@@ -322,7 +344,11 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
       // Cloze OR-invariance: finalMet = existingMet === true || requestedMet === true;
       // This is unconditional and does not depend on preserveMet.
       if (hasMet) {
-        finalMet = existingMet === true || requestedMet === true;
+        if (existingMet === undefined && requestedMet === false) {
+          finalMet = undefined;
+        } else {
+          finalMet = existingMet === true || requestedMet === true;
+        }
       } else {
         finalMet = existingMet;
       }
@@ -350,7 +376,7 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
       );
     }
 
-    if (hasMet) {
+    if (hasMet && finalMet !== undefined) {
       upsertOutcomeVariable(
         outcomes,
         `RUBRIC_${index + 1}_MET`,
