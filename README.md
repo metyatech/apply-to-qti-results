@@ -80,13 +80,22 @@ included in the scoring input.
 
 #### Objective auto-scored items
 
-Items whose source declares a `qti-correct-response` (choice and cloze
-questions) are scored deterministically by the delivery system. For these
-items the tool never overwrites the existing `SCORE` or `RUBRIC_<n>_MET`
+Items whose source declares a `qti-choice-interaction` or `qti-text-entry-interaction`
+(choice and cloze questions) are scored deterministically by the delivery system.
+For choice items, the tool never overwrites the existing `SCORE` or `RUBRIC_<n>_MET`
 outcomes, even when the scoring input supplies `criteria` for them; the
 delivery system's auto-score is treated as authoritative. A `comment`, when
-provided, is still applied. Only descriptive items (no `qti-correct-response`)
-are graded from the scorer rubric `criteria`. Example fixture:
+provided, is still applied.
+
+For cloze items, the tool applies an unconditional OR-invariance: a criterion
+is considered met if either the existing results XML or the scoring input says
+it is met. This allows × → ○ corrections but prevents ○ → × downgrades. The
+item-level `SCORE` is recomputed from the preserved OR-set and is guaranteed
+never to decrease below the previously persisted item score.
+
+Only descriptive items (no choice or cloze interactions) are graded directly
+from the scorer rubric `criteria` without these restrictions (unless `--preserve-met`
+is used). Example fixture:
 [`test/test-cases/choice-auto-scored`](test/test-cases/choice-auto-scored).
 
 `--scoring` also accepts glob patterns when `--results` is a glob. The tool

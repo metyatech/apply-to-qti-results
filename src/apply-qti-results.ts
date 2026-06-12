@@ -41,7 +41,7 @@ type XmlNode = XmlObject | string | number | boolean | null | undefined;
 type ParsedItemSource = {
   identifier: string;
   orderedRoot: OrderedElement;
-  autoScored: boolean;
+  questionType: "choice" | "cloze" | "descriptive";
 };
 
 type OrderedElement = {
@@ -157,8 +157,8 @@ export function applyScoringUpdates(
         failItem(identifier, "scoring source not found");
       }
 
-      if (itemSource.autoScored) {
-        // Objective auto-scored item (choice / cloze). The delivery system's
+      if (itemSource.questionType === "choice") {
+        // Objective auto-scored item (choice). The delivery system's
         // auto-score is authoritative, so preserve the existing SCORE and
         // RUBRIC_n_MET outcomes and ignore AI/manual criteria. A COMMENT, when
         // provided, is still applied below.
@@ -171,6 +171,7 @@ export function applyScoringUpdates(
           rubricCache,
           preserveMet,
           onPreserveMetDowngrade,
+          questionType: itemSource.questionType,
         });
       }
     }
@@ -216,6 +217,7 @@ type ApplyRubricScoringArgs = {
   rubricCache: Map<string, Rubric>;
   preserveMet: boolean;
   onPreserveMetDowngrade?: (notice: PreserveMetDowngradeNotice) => void;
+  questionType: "choice" | "cloze" | "descriptive";
 };
 
 function applyRubricScoring(args: ApplyRubricScoringArgs): void {
@@ -227,6 +229,7 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
     rubricCache,
     preserveMet,
     onPreserveMetDowngrade,
+    questionType,
   } = args;
 
   const item = { criteria: rawCriteria };
@@ -247,9 +250,21 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
     );
   }
 
-  const existingRubricMet = preserveMet
+  const existingRubricMet = (preserveMet || questionType === "cloze")
     ? extractExistingRubricMet(outcomes)
     : new Map<number, boolean>();
+
+  let existingScoreScaled = 0;
+  if (questionType === "cloze") {
+    const scoreOutcome = outcomes.find(o => o?.["@_identifier"] === "SCORE");
+    if (scoreOutcome) {
+      const rawValue = getTextContent((scoreOutcome as XmlObject).value as XmlNode);
+      const parsed = parseScoreValue(rawValue);
+      if (parsed) {
+        existingScoreScaled = toScaledInt(rawValue, rubric.scaleDigits);
+      }
+    }
+  }
 
   let itemScoreScaled = 0;
   for (let index = 0; index < item.criteria.length; index += 1) {
@@ -299,13 +314,27 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
 
     const existingMet = existingRubricMet.get(index + 1);
     const requestedMet = hasMet ? (metValue as boolean) : undefined;
-    const preserveDowngrade =
-      preserveMet && existingMet === true && requestedMet === false;
-    const finalMet = hasMet
-      ? preserveDowngrade
-        ? true
-        : requestedMet
-      : existingMet;
+    
+    let finalMet: boolean | undefined;
+    let preserveDowngrade = false;
+
+    if (questionType === "cloze") {
+      // Cloze OR-invariance: finalMet = existingMet === true || requestedMet === true;
+      // This is unconditional and does not depend on preserveMet.
+      if (hasMet) {
+        finalMet = existingMet === true || requestedMet === true;
+      } else {
+        finalMet = existingMet;
+      }
+    } else {
+      // Descriptive
+      preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
+      finalMet = hasMet
+        ? preserveDowngrade
+          ? true
+          : requestedMet
+        : existingMet;
+    }
 
     if (preserveDowngrade) {
       onPreserveMetDowngrade?.({
@@ -328,6 +357,17 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
         "boolean",
         finalMet === true ? "true" : "false",
       );
+    }
+  }
+
+  if (questionType === "cloze") {
+    // Cloze items must never decrease in score.
+    // If the existing score is higher than the newly computed score, we clamp it.
+    // This handles the case where SCORE=3 exists but no RUBRIC_*_MET outcomes are present,
+    // as well as preventing any score decrease from criteria updates.
+    // We write the RUBRIC_n_MET outcomes based on the OR-invariance above, but keep the SCORE clamped.
+    if (existingScoreScaled > itemScoreScaled) {
+      itemScoreScaled = existingScoreScaled;
     }
   }
 
@@ -401,7 +441,43 @@ function parseItemSource(xml: string): ParsedItemSource {
     fail("missing item identifier");
   }
   const orderedRoot = parseOrderedItemSource(xml);
-  return { identifier, orderedRoot, autoScored: detectAutoScored(root) };
+  return { identifier, orderedRoot, questionType: detectQuestionType(orderedRoot, root) };
+}
+
+function detectQuestionType(orderedRoot: OrderedElement, root: XmlObject): "choice" | "cloze" | "descriptive" {
+  const itemBody = findOrderedChildren(orderedRoot, "qti-item-body")[0];
+  let hasChoice = false;
+  let hasCloze = false;
+
+  if (itemBody) {
+    const walk = (node: OrderedNode) => {
+      if ("name" in node) {
+        if (node.name === "qti-choice-interaction") {
+          hasChoice = true;
+        } else if (node.name === "qti-text-entry-interaction") {
+          hasCloze = true;
+        }
+        for (const child of node.children) {
+          walk(child);
+        }
+      }
+    };
+    walk(itemBody);
+  }
+
+  if (hasChoice) {
+    return "choice";
+  }
+  if (hasCloze) {
+    return "cloze";
+  }
+
+  // Defensive fallback for choice items only
+  if (detectAutoScored(root)) {
+    return "choice";
+  }
+
+  return "descriptive";
 }
 
 // An item is objectively auto-scored when its response declaration carries a

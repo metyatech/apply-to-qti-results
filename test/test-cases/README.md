@@ -39,6 +39,12 @@ implementation test harness later.
 - `glob-missing-scoring/` error when a results glob entry has no matching scoring file.
 - `glob-regex-basic/` success case that maps results to scoring via results regex and template.
 - `glob-regex-mismatch/` error when a results file does not match the results regex.
+- `cloze-x-to-met/` success case where cloze item criterion is corrected from false to true.
+- `cloze-met-to-x-blocked/` success case where cloze item downgrade from true to false is blocked.
+- `cloze-multiple-criteria/` success case where one cloze criterion is corrected and another is preserved.
+- `cloze-multiple-criteria-downgrade-blocked/` success case where multiple cloze downgrades are blocked.
+- `cloze-score-only-no-rubric-met/` success case where cloze item has SCORE but no RUBRIC_n_MET outcomes.
+- `choice-criteria-ignored/` success case where choice item ignores criteria but applies comment.
 
 ## Conventions
 
@@ -84,3 +90,9 @@ implementation test harness later.
 - [glob-missing-scoring](glob-missing-scoring)
 - [glob-regex-basic](glob-regex-basic)
 - [glob-regex-mismatch](glob-regex-mismatch)
+- [cloze-x-to-met](cloze-x-to-met)
+- [cloze-met-to-x-blocked](cloze-met-to-x-blocked)
+- [cloze-multiple-criteria](cloze-multiple-criteria)
+- [cloze-multiple-criteria-downgrade-blocked](cloze-multiple-criteria-downgrade-blocked)
+- [cloze-score-only-no-rubric-met](cloze-score-only-no-rubric-met)
+- [choice-criteria-ignored](choice-criteria-ignored)

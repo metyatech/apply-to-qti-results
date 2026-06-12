@@ -9,11 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Objective auto-scored items (sources declaring `qti-correct-response`, i.e.
-  choice and cloze questions) no longer have their `SCORE` or `RUBRIC_<n>_MET`
-  outcomes overwritten by scoring-input `criteria`. The delivery system's
-  deterministic auto-score is preserved; only descriptive items are graded from
-  the scorer rubric. Per-item `comment` values are still applied.
+- Replaced the generic `autoScored` check with question-type-aware logic (`choice`, `cloze`, `descriptive`).
+- Choice items (`qti-choice-interaction`) ignore scoring `criteria` entirely, preserving the delivery system's auto-score.
+- Cloze items (`qti-text-entry-interaction`) apply an unconditional OR-invariance for scoring criteria, allowing upward corrections (× → ○) but preventing downgrades (○ → ×). The item-level `SCORE` is guaranteed never to decrease.
+- Descriptive items continue to use the existing behavior, respecting the `--preserve-met` flag.
 
 ## [0.1.0] - 2026-02-06
 

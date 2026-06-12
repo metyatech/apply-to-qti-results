@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "identifier": "item-1",
+      "criteria": [
+        {
+          "met": false,
+          "criterionText": "Criterion 1"
+        },
+        {
+          "met": false,
+          "criterionText": "Criterion 2"
+        }
+      ]
+    }
+  ]
+}
