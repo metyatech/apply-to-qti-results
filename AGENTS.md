@@ -35,43 +35,13 @@ Source: github:metyatech/agent-rules@HEAD/rules/domains/node/npm-packages.md
 - Use npm pack --dry-run to inspect the package contents.
 - Run npm test when tests exist.
 
-Source: agent-rules-local/qti3-results-reporting.md
+Source: github:metyatech/agent-rules@HEAD/rules/domains/agent-tooling/composition.md
 
-# QTI 3.0 Results Reporting ルール
+# Agent Tooling Composition
 
-## 目的
-
-- QTI 3.0 Results Reporting の内容を適切に書き換えるためのツール開発に特化した運用ルール。
-- 仕様準拠・互換性・検証容易性を最優先とする。
-
-## スコープ
-
-- QTI 3.0 Results Reporting 仕様に基づく入力・出力変換、検証、整形、差分生成を対象。
-- 仕様外の独自拡張は明示し、デフォルトは無効。
-
-## 仕様準拠
-
-- 仕様用語は原文に合わせ、勝手な言い換えを避ける。
-- 結果書き換え時は、識別子・スコア・メタデータの整合性を保持する。
-- 変更が影響する範囲を明記し、暗黙の破壊的変更をしない。
-
-## データ取り扱い
-
-- 入力は不正・欠損・余剰フィールドを含む前提で堅牢に処理する。
-- 正規化・マッピング・フィルタの手順を明文化し、再現可能にする。
-- 変換前後の監査ログ（差分や要約）を残す設計を推奨。
-
-## バリデーション
-
-- 仕様に対するスキーマ検証を優先し、検証エラーは具体的なパスと理由を返す。
-- 許容する例外ケースはルール化し、テストで固定化する。
-
-## テスト指針
-
-- 正常系・境界値・破損データを含むテストを用意する。
-- 変換結果はスナップショットや差分比較で検証する。
-
-## ドキュメント
-
-- 変換ルールは入出力例とともに記載する。
-- 仕様の参照箇所（節や用語）を明記する。
+- Agent tooling repositories MUST keep generated instruction files reproducible from `agent-ruleset.json` and the selected profile.
+- Agent tooling repositories MUST NOT rely on repo-local `agent-rules-local` rule files.
+- Rule source changes MUST be made in `rules/global/`, `rules/domains/`, or `agent-profiles.json`.
+- Generated `AGENTS.md` and `CLAUDE.md` diffs MUST be reviewed as generated instruction diffs, not hand-edited.
+- If a generated instruction file is stale, regenerate it with `compose-agentsmd` or the repository's canonical compose command before reporting completion.
+- A profile MUST select the complete set of domains needed by a repository type; consuming repositories MUST NOT compensate by listing domains or local extras.
