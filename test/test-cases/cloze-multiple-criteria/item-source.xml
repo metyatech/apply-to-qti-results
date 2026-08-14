@@ -19,8 +19,8 @@
   <qti-item-body>
     <qti-text-entry-interaction response-identifier="RESPONSE" expected-length="10"/>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] Criterion 1</qti-p>
-      <qti-p>[2] Criterion 2</qti-p>
+      <p>[1] Criterion 1</p>
+      <p>[2] Criterion 2</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

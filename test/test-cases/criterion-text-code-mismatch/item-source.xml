@@ -7,8 +7,7 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] <qti-code>console.log</qti-code> を正しく使えている</qti-p>
-      <qti-p>[1] 指定された3つの内容を、指定された順番で出力している</qti-p>
+      <p>[1] <code>console.log</code> を正しく使えている</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

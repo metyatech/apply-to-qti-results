@@ -19,7 +19,7 @@
   <qti-item-body>
     <qti-text-entry-interaction response-identifier="RESPONSE" expected-length="10"/>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] Entered the correct text</qti-p>
+      <p>[1] Entered the correct text</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

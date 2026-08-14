@@ -7,7 +7,7 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] 変数 <qti-code>count</qti-code> を正しく使えている</qti-p>
+      <p>[1] 変数 <code>count</code> を正しく使えている</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

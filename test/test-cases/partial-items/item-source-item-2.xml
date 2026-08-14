@@ -7,7 +7,7 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[3] Provides H2O</qti-p>
+      <p>[3] Provides H2O</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

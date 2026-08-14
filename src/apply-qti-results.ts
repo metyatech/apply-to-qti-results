@@ -553,7 +553,7 @@ function extractRubric(source: ParsedItemSource, identifier: string): Rubric {
     failItem(identifier, "scorer rubric not found");
   }
 
-  const paragraphs = findOrderedChildren(scorerBlock, "qti-p");
+  const paragraphs = findOrderedChildren(scorerBlock, "p");
   if (paragraphs.length === 0) {
     failItem(identifier, "scorer rubric not found");
   }

@@ -7,8 +7,8 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[2] Identifies the main idea</qti-p>
-      <qti-p>[1] Uses supporting detail</qti-p>
+      <p>[2] Identifies the main idea</p>
+      <p>[1] Uses supporting detail</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

@@ -22,7 +22,7 @@
       <qti-simple-choice identifier="CHOICE_2">Wrong</qti-simple-choice>
     </qti-choice-interaction>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] Selected the correct choice</qti-p>
+      <p>[1] Selected the correct choice</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

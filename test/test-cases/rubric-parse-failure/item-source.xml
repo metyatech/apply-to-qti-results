@@ -7,7 +7,7 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>Missing point prefix</qti-p>
+      <p>Missing point prefix</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

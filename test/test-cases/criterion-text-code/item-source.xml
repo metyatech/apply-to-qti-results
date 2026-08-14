@@ -2,12 +2,13 @@
 <qti-assessment-item
     xmlns="http://www.imsglobal.org/xsd/imsqti_v3p0"
     identifier="item-1"
-    title="Variable Use"
+    title="Console Output"
     adaptive="false"
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] 変数 <qti-code>count</qti-code> を正しく使えている</qti-p>
+      <p>[1] <code>console.log</code> を正しく使えている</p>
+      <p>[1] 指定された3つの内容を、指定された順番で出力している</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

@@ -7,7 +7,7 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[1] States the fact</qti-p>
+      <p>[1] States the fact</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>

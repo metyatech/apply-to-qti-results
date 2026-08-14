@@ -89,7 +89,7 @@ identifier pattern for those outcomes.
 The scoring rubric is read from `qti-rubric-block` with `view="scorer"` inside
 `qti-assessment-item`.
 
-Each rubric line is a `qti-p` whose text follows this format:
+Each rubric line is a `p` whose text follows this format:
 
 ```
 [<points>] <criterion>
@@ -124,7 +124,7 @@ Each criterion entry contains:
 - `criterionText` (optional string): if provided, it is compared to the rubric
   criterion text (the `<criterion>` part, without the `[<points>]`) using a
   normalized match that ignores:
-  - inline code formatting differences, such as QTI `qti-code` elements or
+  - inline code formatting differences, such as HTML `code` elements or
     Markdown backticks, while preserving the code text itself
   - tag delimiters in inline code-like text, so `<header>` and `` `<header>` ``
     both normalize to `header`

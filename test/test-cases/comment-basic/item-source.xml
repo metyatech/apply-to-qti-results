@@ -7,7 +7,7 @@
     time-dependent="false">
   <qti-item-body>
     <qti-rubric-block view="scorer">
-      <qti-p>[2] Identifies the main idea</qti-p>
+      <p>[2] Identifies the main idea</p>
     </qti-rubric-block>
   </qti-item-body>
 </qti-assessment-item>
