@@ -184,24 +184,25 @@ comment output and does not modify rubric outcomes or scores.
 ## Optional mode: preserve met outcomes
 
 When the tool is run with a "preserve met" mode enabled, it must not change an
-existing `RUBRIC_<index>_MET` value from `true` to `false` for descriptive items. In that mode:
+existing `RUBRIC_<index>_MET` value from `true` to `false`. In that mode:
 
 - If the existing `RUBRIC_<index>_MET` is `true` and the input `met` is `false`,
   the output remains `true`.
 - Item-level and test-level `SCORE` values are calculated using the preserved
   rubric outcomes.
 
-## Cloze invariance
+## Cloze downgrade protection
 
-For cloze items (`qti-text-entry-interaction`), the tool applies an unconditional
-OR-invariance regardless of the "preserve met" mode:
+For cloze items (`qti-text-entry-interaction`), existing rubric outcomes and
+SCORE-only full-score inference protect a downgrade only when the optional
+"preserve met" mode is enabled:
 
-- A criterion is considered met if either the existing results XML or the scoring
-  input says it is met (`finalMet = existingMet === true || requestedMet === true`).
-- This allows × → ○ corrections but prevents ○ → × downgrades.
-- The item-level `SCORE` is recomputed from the preserved OR-set and is guaranteed
-  never to decrease below the previously persisted item score. If the existing
-  score is higher than the newly computed score, the existing score is preserved.
+- If the existing or inferred `RUBRIC_<index>_MET` value is `true` and the input
+  requests `false`, the output remains `true`.
+- In that mode, if the existing item-level `SCORE` is higher than the score
+  computed from the protected outcomes, the existing score is preserved.
+- Without "preserve met", cloze outcomes are calculated from the requested
+  criteria, so both × → ○ and ○ → × corrections are allowed.
 
 ## Objective auto-scored items
 
@@ -211,12 +212,11 @@ overwrites the existing `SCORE` or `RUBRIC_<n>_MET` outcomes, even when the
 scoring input supplies `criteria` for them; the delivery system's auto-score is
 treated as authoritative. A `comment`, when provided, is still applied.
 
-Cloze items (`qti-text-entry-interaction`) are also auto-scored but allow
-upward corrections via the Cloze invariance rules described above.
+Cloze items (`qti-text-entry-interaction`) are also auto-scored but apply the
+cloze downgrade-protection rules above only when "preserve met" is enabled.
 
 Only descriptive items (no choice or cloze interactions) are graded directly
-from the scorer rubric `criteria` without these restrictions (unless the
-preserve met mode is used).
+from the scorer rubric `criteria`; they also respect the preserve-met mode.
 
 ## Output behavior
 

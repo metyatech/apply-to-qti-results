@@ -40,9 +40,10 @@ implementation test harness later.
 - `glob-regex-basic/` success case that maps results to scoring via results regex and template.
 - `glob-regex-mismatch/` error when a results file does not match the results regex.
 - `cloze-x-to-met/` success case where cloze item criterion is corrected from false to true.
-- `cloze-met-to-x-blocked/` success case where cloze item downgrade from true to false is blocked.
-- `cloze-multiple-criteria/` success case where one cloze criterion is corrected and another is preserved.
-- `cloze-multiple-criteria-downgrade-blocked/` success case where multiple cloze downgrades are blocked.
+- `cloze-met-to-x-blocked/` success case where a normal cloze update changes true to false.
+- `cloze-met-to-x-preserve-met/` success case where `preserveMet` keeps a cloze downgrade blocked.
+- `cloze-multiple-criteria/` success case where cloze criteria are updated in both directions.
+- `cloze-multiple-criteria-downgrade-blocked/` success case where `preserveMet` is not enabled and multiple cloze downgrades are allowed.
 - `cloze-score-only-no-rubric-met/` success case where cloze item has SCORE but no RUBRIC_n_MET outcomes.
 - `choice-criteria-ignored/` success case where choice item ignores criteria but applies comment.
 
@@ -92,6 +93,7 @@ implementation test harness later.
 - [glob-regex-mismatch](glob-regex-mismatch)
 - [cloze-x-to-met](cloze-x-to-met)
 - [cloze-met-to-x-blocked](cloze-met-to-x-blocked)
+- [cloze-met-to-x-preserve-met](cloze-met-to-x-preserve-met)
 - [cloze-multiple-criteria](cloze-multiple-criteria)
 - [cloze-multiple-criteria-downgrade-blocked](cloze-multiple-criteria-downgrade-blocked)
 - [cloze-score-only-no-rubric-met](cloze-score-only-no-rubric-met)

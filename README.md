@@ -87,15 +87,16 @@ outcomes, even when the scoring input supplies `criteria` for them; the
 delivery system's auto-score is treated as authoritative. A `comment`, when
 provided, is still applied.
 
-For cloze items, the tool applies an unconditional OR-invariance: a criterion
-is considered met if either the existing results XML or the scoring input says
-it is met. This allows × → ○ corrections but prevents ○ → × downgrades. The
-item-level `SCORE` is recomputed from the preserved OR-set and is guaranteed
-never to decrease below the previously persisted item score.
+For cloze items, existing rubric outcomes and SCORE-only full-score inference
+are used for downgrade protection only when `--preserve-met` is enabled. In
+that mode, a criterion already treated as met remains met and the item-level
+`SCORE` does not decrease. Without `--preserve-met`, cloze criteria are
+recomputed from the requested values, so both × → ○ and ○ → × corrections are
+allowed.
 
 Only descriptive items (no choice or cloze interactions) are graded directly
-from the scorer rubric `criteria` without these restrictions (unless `--preserve-met`
-is used). Example fixture:
+from the scorer rubric `criteria`; they also respect `--preserve-met` when it is
+used. Example fixture:
 [`test/test-cases/choice-auto-scored`](test/test-cases/choice-auto-scored).
 
 `--scoring` also accepts glob patterns when `--results` is a glob. The tool

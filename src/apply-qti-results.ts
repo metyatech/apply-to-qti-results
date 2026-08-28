@@ -334,33 +334,21 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
       }
     }
 
-    const existingMet = existingRubricMet.get(index + 1);
+    const existingMet = preserveMet
+      ? existingRubricMet.get(index + 1)
+      : undefined;
     const requestedMet = hasMet ? (metValue as boolean) : undefined;
-    
-    let finalMet: boolean | undefined;
-    let preserveDowngrade = false;
 
-    if (questionType === "cloze") {
-      // Cloze OR-invariance: finalMet = existingMet === true || requestedMet === true;
-      // This is unconditional and does not depend on preserveMet.
-      if (hasMet) {
-        if (existingMet === undefined && requestedMet === false) {
-          finalMet = undefined;
-        } else {
-          finalMet = existingMet === true || requestedMet === true;
-        }
-      } else {
-        finalMet = existingMet;
-      }
-    } else {
-      // Descriptive
-      preserveDowngrade = preserveMet && existingMet === true && requestedMet === false;
-      finalMet = hasMet
-        ? preserveDowngrade
-          ? true
-          : requestedMet
-        : existingMet;
-    }
+    // Existing rubric outcomes are authoritative only in preserve-met mode.
+    // This applies equally to descriptive and cloze items: a normal review
+    // update must be able to correct an earlier true outcome back to false.
+    const preserveDowngrade =
+      preserveMet && existingMet === true && requestedMet === false;
+    const finalMet = hasMet
+      ? preserveDowngrade
+        ? true
+        : requestedMet
+      : existingMet;
 
     if (preserveDowngrade) {
       onPreserveMetDowngrade?.({
@@ -386,12 +374,10 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
     }
   }
 
-  if (questionType === "cloze") {
-    // Cloze items must never decrease in score.
-    // If the existing score is higher than the newly computed score, we clamp it.
-    // This handles the case where SCORE=3 exists but no RUBRIC_*_MET outcomes are present,
-    // as well as preventing any score decrease from criteria updates.
-    // We write the RUBRIC_n_MET outcomes based on the OR-invariance above, but keep the SCORE clamped.
+  if (questionType === "cloze" && preserveMet) {
+    // In preserve-met mode, a SCORE-only full-score cloze is represented by
+    // inferred true outcomes above. Keep the historical score clamp as a
+    // second guard for any higher persisted SCORE that has no rubric outcome.
     if (existingScoreScaled > itemScoreScaled) {
       itemScoreScaled = existingScoreScaled;
     }
