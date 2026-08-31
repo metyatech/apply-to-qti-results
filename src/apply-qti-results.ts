@@ -18,6 +18,7 @@ type ApplyInput = {
 
 type ApplyOptions = {
   preserveMet?: boolean;
+  ignoreCriterionTextMismatch?: boolean;
   onPreserveMetDowngrade?: (notice: PreserveMetDowngradeNotice) => void;
 };
 
@@ -57,6 +58,8 @@ export function applyScoringUpdates(
   options: ApplyOptions = {},
 ): string {
   const preserveMet = Boolean(options.preserveMet);
+  const ignoreCriterionTextMismatch =
+    options.ignoreCriterionTextMismatch === true;
   const onPreserveMetDowngrade = options.onPreserveMetDowngrade;
   const scoringItems = readScoringItems(input.scoringInput);
   const resultsDoc = parseXmlOrFail(
@@ -170,6 +173,7 @@ export function applyScoringUpdates(
           outcomes,
           rubricCache,
           preserveMet,
+          ignoreCriterionTextMismatch,
           onPreserveMetDowngrade,
           questionType: itemSource.questionType,
         });
@@ -216,6 +220,7 @@ type ApplyRubricScoringArgs = {
   outcomes: XmlObject[];
   rubricCache: Map<string, Rubric>;
   preserveMet: boolean;
+  ignoreCriterionTextMismatch: boolean;
   onPreserveMetDowngrade?: (notice: PreserveMetDowngradeNotice) => void;
   questionType: "choice" | "cloze" | "descriptive";
 };
@@ -228,6 +233,7 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
     outcomes,
     rubricCache,
     preserveMet,
+    ignoreCriterionTextMismatch,
     onPreserveMetDowngrade,
     questionType,
   } = args;
@@ -320,17 +326,19 @@ function applyRubricScoring(args: ApplyRubricScoringArgs): void {
           `criterionText must be string at index ${index + 1}`,
         );
       }
-      const expectedNormalized = normalizeCriterionText(rubricCriterion.text);
-      const actualNormalized = normalizeCriterionText(criterionText);
-      if (expectedNormalized !== actualNormalized) {
-        const expectedText = JSON.stringify(rubricCriterion.text);
-        const actualText = JSON.stringify(criterionText);
-        const normalizedExpected = JSON.stringify(expectedNormalized);
-        const normalizedActual = JSON.stringify(actualNormalized);
-        failItem(
-          identifier,
-          `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText}, normalized expected: ${normalizedExpected}, normalized got: ${normalizedActual})`,
-        );
+      if (!ignoreCriterionTextMismatch) {
+        const expectedNormalized = normalizeCriterionText(rubricCriterion.text);
+        const actualNormalized = normalizeCriterionText(criterionText);
+        if (expectedNormalized !== actualNormalized) {
+          const expectedText = JSON.stringify(rubricCriterion.text);
+          const actualText = JSON.stringify(criterionText);
+          const normalizedExpected = JSON.stringify(expectedNormalized);
+          const normalizedActual = JSON.stringify(actualNormalized);
+          failItem(
+            identifier,
+            `criterionText does not match rubric criterion at index ${index + 1} (expected: ${expectedText}, got: ${actualText}, normalized expected: ${normalizedExpected}, normalized got: ${normalizedActual})`,
+          );
+        }
       }
     }
 

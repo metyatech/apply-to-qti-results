@@ -14,6 +14,7 @@ type RunInput = {
   scoringTemplate?: string;
   options?: {
     preserveMet?: boolean;
+    ignoreCriterionTextMismatch?: boolean;
   };
 };
 
@@ -97,6 +98,9 @@ function buildArgs(baseArgs: string[], input: RunInput): string[] {
   }
   if (input.options?.preserveMet) {
     args.push("--preserve-met");
+  }
+  if (input.options?.ignoreCriterionTextMismatch) {
+    args.push("--ignore-criterion-text-mismatch");
   }
   return args;
 }

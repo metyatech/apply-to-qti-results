@@ -15,6 +15,7 @@ type CliArgs = {
   resultsRegex: string | null;
   scoringTemplate: string | null;
   preserveMet: boolean;
+  ignoreCriterionTextMismatch: boolean;
 };
 
 export function runCli(argv: string[]): void {
@@ -104,6 +105,7 @@ export function runCli(argv: string[]): void {
           },
           {
             preserveMet: args.preserveMet,
+            ignoreCriterionTextMismatch: args.ignoreCriterionTextMismatch,
             onPreserveMetDowngrade: (notice) => {
               process.stderr.write(
                 `preserve-met: ${notice.itemIdentifier} RUBRIC_${notice.rubricIndex}_MET stays true (requested false)\n`,
@@ -148,6 +150,7 @@ function parseArgs(argv: string[]): CliArgs {
     resultsRegex: null,
     scoringTemplate: null,
     preserveMet: false,
+    ignoreCriterionTextMismatch: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -179,6 +182,10 @@ function parseArgs(argv: string[]): CliArgs {
     }
     if (arg === "--preserve-met") {
       result.preserveMet = true;
+      continue;
+    }
+    if (arg === "--ignore-criterion-text-mismatch") {
+      result.ignoreCriterionTextMismatch = true;
       continue;
     }
   }

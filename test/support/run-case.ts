@@ -56,6 +56,7 @@ export function runCase(caseName: string, caseDir: string): void {
   const options = fs.existsSync(optionsPath)
     ? (JSON.parse(fs.readFileSync(optionsPath, "utf8")) as {
         preserveMet?: boolean;
+        ignoreCriterionTextMismatch?: boolean;
       })
     : undefined;
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "apply-qti-results-"));

@@ -12,6 +12,10 @@ implementation test harness later.
 - `criteria-length-mismatch/` error when criteria count does not match rubric.
 - `criteria-missing-met/` success case that leaves criteria unchanged when met is omitted.
 - `criterion-text-mismatch/` error when `criterionText` does not match rubric.
+- `criterion-text-mismatch-ignored/` success when the explicit option allows
+  old criterion wording while applying `met` values by array index.
+- `criteria-length-mismatch-ignored/` error even when the explicit option is
+  enabled, because the criteria count must match the rubric.
 - `missing-rubric/` error when the item has no scorer rubric.
 - `invalid-results-namespace/` error when results namespace is unexpected.
 - `missing-results-namespace/` error when results namespace is missing.

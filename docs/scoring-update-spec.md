@@ -240,6 +240,11 @@ The tool must validate:
 - Each `criteria` array length equals the rubric criteria count.
 - `criterionText` (when present) matches the rubric criterion text under the
   normalized matching rules above.
+- By default, a provided `criterionText` must match the current rubric text
+  after normalization. The CLI option `--ignore-criterion-text-mismatch` may
+  explicitly disable only this text-match check; `criterionText` must still be
+  a string, criteria count must still match the rubric, and all other
+  validation remains enforced.
 - Results and scoring globs (when used) resolve to at least one file.
 - When globbing, each results entry has exactly one matching scoring file.
 - When regex mapping is enabled, the results regex is valid and matches every

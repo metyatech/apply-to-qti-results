@@ -30,7 +30,7 @@ forwards to the implementation in `src/cli.ts`.
 For local usage, you can run:
 
 ```sh
-npm run apply-results -- --results <results.xml> --assessment-test <assessment-test.qti.xml> --scoring <scoring.json> [--preserve-met]
+npm run apply-results -- --results <results.xml> --assessment-test <assessment-test.qti.xml> --scoring <scoring.json> [--preserve-met] [--ignore-criterion-text-mismatch]
 ```
 
 On success, the command overwrites the results XML file in place.
@@ -135,6 +135,18 @@ downgraded to `false`. The item-level and test-level `SCORE` are calculated
 using the preserved rubric outcomes.
 If a downgrade is prevented, the CLI writes a warning to stderr.
 
+### `--ignore-criterion-text-mismatch` (optional)
+
+When explicitly enabled, the CLI still requires every provided `criterionText`
+to be a string, but skips normalized text matching against the current rubric.
+The criteria array length, item/result mapping, rubric parsing, `met` boolean
+validation, and all other validations remain enforced. No warning is emitted
+merely because this option is enabled.
+
+This option matches criteria by array index. Do not reorder criteria or change
+their meaning after scoring; this option is intended only for wording changes
+to criterion text.
+
 The CLI must accept the following arguments:
 
 - `--results <path|glob>`: results input XML (or glob).
@@ -143,6 +155,8 @@ The CLI must accept the following arguments:
 - `--results-regex <pattern>`: optional regex mapping for results paths.
 - `--scoring-template <template>`: optional scoring template used with `--results-regex`.
 - `--preserve-met`: optional flag to prevent `true` → `false` rubric downgrades.
+- `--ignore-criterion-text-mismatch`: optional explicit flag to allow old
+  criterion wording while retaining index-based criterion mapping.
 
 The CLI must write to stdout:
 
